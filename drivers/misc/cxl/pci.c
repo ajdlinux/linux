@@ -684,7 +684,7 @@ static void switch_card_to_cxl(struct work_struct *work)
 			goto err_free_work;
 		}
 	} else {
-		dev_WARN(&bus->dev, "cxl: Switching card to PCI mode not supported!\n");
+		dev_WARN(&bus->dev, "cxl: Switching card to PCI mode not particularly supported yet!\n");
 		goto err_free_work;
 	}
 
@@ -777,13 +777,15 @@ int cxl_check_and_switch_mode(struct pci_dev *dev, int mode, int vsec)
 		 * we need to disable the CAPP and make sure any cachelines the
 		 * card holds have been flushed out. Needs skiboot support.
 		 */
-		dev_WARN(&dev->dev, "CXL mode switch to PCI unsupported!\n");
-		return -EIO;
-	}
+		//dev_WARN(&dev->dev, "CXL mode switch to PCI unsupported!\n");
+		//return -EIO;
+	} else {
 
 	if (val & CXL_VSEC_PROTOCOL_ENABLE) {
 		dev_info(&dev->dev, "Card is already in CXL mode\n");
 		return 0;
+	}
+
 	}
 
 	dev_info(&dev->dev, "Card is in PCI mode, scheduling kernel thread "
@@ -1290,6 +1292,21 @@ static void cxl_unmap_adapter_regs(struct cxl *adapter)
 		iounmap(adapter->native->p2_mmio);
 		adapter->native->p2_mmio = NULL;
 		pci_release_region(to_pci_dev(adapter->dev.parent), 0);
+	}
+}
+
+/* Must be called after all AFUs are stopped */
+static void cxl_flush_cachelines(struct cxl *adapter)
+{
+	u64 reg;
+	
+	/* Request cache flush */
+	cxl_p1_write(adapter, CXL_PSL_Control, CXL_PSL_Control_flush_request);
+
+	/* Poll until cache flush completes */
+	while ((cxl_p1_read(adapter, CXL_PSL_Control) & CXL_PSL_Control_flush_status)
+	       != CXL_PSL_Control_flush_status) {
+		// TODO: bail if it takes too long?
 	}
 }
 
