@@ -207,6 +207,7 @@ int pnv_cxl_enable_phb_kernel_api(struct pci_controller *hose, bool enable)
 		 * in the future we can revisit this, but for now the only sane
 		 * thing to do is to refuse to disable cxl mode:
 		 */
+		dev_WARN(&hose->dev, "cxl: attempting to disable phb kernel api\n");
 		return -EPERM;
 	}
 

@@ -747,8 +747,10 @@ err_free_work:
 int cxl_check_and_switch_mode(struct pci_dev *dev, int mode, int vsec)
 {
 	struct cxl_switch_work *work;
+	//struct cxl *adapter;
 	u8 val;
 	int rc;
+	//int slice;
 
 	if (!cpu_has_feature(CPU_FTR_HVMODE))
 		return -ENODEV;
@@ -777,15 +779,37 @@ int cxl_check_and_switch_mode(struct pci_dev *dev, int mode, int vsec)
 		 * we need to disable the CAPP and make sure any cachelines the
 		 * card holds have been flushed out. Needs skiboot support.
 		 */
+		//switch_card_to_pcie(dev);
+/*		rc = pnv_phb_to_cxl_mode(dev, OPAL_PHB_CAPI_MODE_PCIE);
+		if (rc)
+			dev_WARN(&dev->dev, "PCIe mode switch failed\n");
+		return rc;
+*/		
 		//dev_WARN(&dev->dev, "CXL mode switch to PCI unsupported!\n");
 		//return -EIO;
+
+
+		// Let's 
+		
+		// Check that all AFUs are disabled
+		/*adapter = pci_get_drvdata(dev);
+		if (!adapter) {
+			dev_err(&dev->dev, "No cxl adapter\n");
+			return -ENODEV;
+		}
+		spin_lock(adapter->afu_list_lock);
+		for (slice = 0; slice < adapter->slices; slice++) {
+			if (adapter->afu[slice]) {
+				// DO SOMETHING
+			}
+		}
+		spin_unlock(adapter->afu_list_lock);
+		*/
 	} else {
-
-	if (val & CXL_VSEC_PROTOCOL_ENABLE) {
-		dev_info(&dev->dev, "Card is already in CXL mode\n");
-		return 0;
-	}
-
+		if (val & CXL_VSEC_PROTOCOL_ENABLE) {
+			dev_info(&dev->dev, "Card is already in CXL mode\n");
+			return 0;
+		}	
 	}
 
 	dev_info(&dev->dev, "Card is in PCI mode, scheduling kernel thread "
@@ -1515,7 +1539,11 @@ static void cxl_deconfigure_adapter(struct cxl *adapter)
 
 	cxl_native_release_psl_err_irq(adapter);
 	cxl_unmap_adapter_regs(adapter);
-
+	cxl_flush_cachelines(adapter);
+	rc = pnv_phb_to_cxl_mode(dev, OPAL_PHB_CAPI_MODE_PCIE);
+	if (rc)
+		dev_WARN(&adapter->dev, "PCIe mode switch failed\n");
+	
 	pci_disable_device(pdev);
 }
 
