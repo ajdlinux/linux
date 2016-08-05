@@ -1322,7 +1322,7 @@ static void cxl_unmap_adapter_regs(struct cxl *adapter)
 /* Must be called after all AFUs are stopped */
 static void cxl_flush_cachelines(struct cxl *adapter)
 {
-	u64 reg;
+	//u64 reg;
 	
 	/* Request cache flush */
 	cxl_p1_write(adapter, CXL_PSL_Control, CXL_PSL_Control_flush_request);
@@ -1536,11 +1536,11 @@ err:
 static void cxl_deconfigure_adapter(struct cxl *adapter)
 {
 	struct pci_dev *pdev = to_pci_dev(adapter->dev.parent);
-
+	int rc;
 	cxl_native_release_psl_err_irq(adapter);
 	cxl_unmap_adapter_regs(adapter);
 	cxl_flush_cachelines(adapter);
-	rc = pnv_phb_to_cxl_mode(dev, OPAL_PHB_CAPI_MODE_PCIE);
+	rc = pnv_phb_to_cxl_mode(&adapter->dev, OPAL_PHB_CAPI_MODE_PCIE);
 	if (rc)
 		dev_WARN(&adapter->dev, "PCIe mode switch failed\n");
 	
