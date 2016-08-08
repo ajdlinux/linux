@@ -1541,6 +1541,10 @@ static void cxl_deconfigure_adapter(struct cxl *adapter)
 	int rc;
 	cxl_native_release_psl_err_irq(adapter);
 	cxl_flush_cachelines(adapter);
+	rc = sanitise_adapter_regs(adapter);
+	if (rc)
+		dev_WARN(&pdev->dev, "sanitise_adapter_regs() returned %d\n", rc);
+	
 	cxl_unmap_adapter_regs(adapter);
 	rc = pnv_phb_to_cxl_mode(pdev, OPAL_PHB_CAPI_MODE_PCIE);
 	if (rc)
