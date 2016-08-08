@@ -1331,7 +1331,9 @@ static void cxl_flush_cachelines(struct cxl *adapter)
 	while ((cxl_p1_read(adapter, CXL_PSL_Control) & CXL_PSL_Control_flush_status)
 	       != CXL_PSL_Control_flush_status) {
 		// TODO: bail if it takes too long?
+		printk("cxl: waiting to flush cachelines\n");
 	}
+	printk("cxl: cachelines flushed!\n");
 }
 
 static int cxl_read_vsec(struct cxl *adapter, struct pci_dev *dev)
