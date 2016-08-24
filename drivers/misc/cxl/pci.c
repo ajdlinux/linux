@@ -1546,9 +1546,9 @@ static void cxl_deconfigure_adapter(struct cxl *adapter)
 		dev_WARN(&pdev->dev, "sanitise_adapter_regs() returned %d\n", rc);
 	
 	cxl_unmap_adapter_regs(adapter);
-	rc = pnv_phb_to_cxl_mode(pdev, OPAL_PHB_CAPI_MODE_PCIE);
+	rc = cxl_pci_reset(adapter);
 	if (rc)
-		dev_WARN(&pdev->dev, "PCIe mode switch failed\n");
+		dev_WARN(&pdev->dev, "Fundamental reset failed %d\n", rc);
 	
 	pci_disable_device(pdev);
 }
