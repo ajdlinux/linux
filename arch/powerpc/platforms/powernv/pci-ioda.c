@@ -3450,10 +3450,11 @@ static void pnv_pci_release_device(struct pci_dev *pdev)
 
 static void pnv_pci_ioda_shutdown(struct pci_controller *hose)
 {
-	struct pnv_phb *phb = hose->private_data;
+	//struct pnv_phb *phb = hose->private_data;
 
-	opal_pci_reset(phb->opal_id, OPAL_RESET_PCI_IODA_TABLE,
-		       OPAL_ASSERT_RESET);
+	//opal_pci_reset(phb->opal_id, OPAL_RESET_PCI_IODA_TABLE,
+	//	       OPAL_ASSERT_RESET);
+	pnv_eeh_phb_reset(hose, EEH_RESET_FUNDAMENTAL);
 }
 
 static const struct pci_controller_ops pnv_pci_ioda_controller_ops = {
