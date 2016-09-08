@@ -3736,11 +3736,17 @@ static void __init pnv_pci_init_ioda_phb(struct device_node *np,
 	if (rc)
 		pr_warning("  OPAL Error %ld performing IODA table reset !\n", rc);
 
-	/* If we're running in kdump kerenl, the previous kerenl never
+	/*
+	 * If we're running in kdump kernel, the previous kernel never
 	 * shutdown PCI devices correctly. We already got IODA table
 	 * cleaned out. So we have to issue PHB reset to stop all PCI
-	 * transactions from previous kerenl.
-	 */  
+	 * transactions from previous kernel.
+	 *
+	 * Additionally, if the PHB is in C
+	 */
+	if (is_kdump_kernel() ||
+	    opal_pci_get_phb_capi_mode(phb_id) == 
+	    
 	pr_info("  Issue PHB reset ...\n");
 	pnv_eeh_phb_reset(hose, EEH_RESET_FUNDAMENTAL);
 	pnv_eeh_phb_reset(hose, EEH_RESET_DEACTIVATE);
