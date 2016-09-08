@@ -3740,12 +3740,11 @@ static void __init pnv_pci_init_ioda_phb(struct device_node *np,
 	 * shutdown PCI devices correctly. We already got IODA table
 	 * cleaned out. So we have to issue PHB reset to stop all PCI
 	 * transactions from previous kerenl.
-	 */
-	//if (is_kdump_kernel()) {
-		pr_info("  Issue PHB reset ...\n");
-		pnv_eeh_phb_reset(hose, EEH_RESET_FUNDAMENTAL);
-		pnv_eeh_phb_reset(hose, EEH_RESET_DEACTIVATE);
-		//}
+	 */  
+	pr_info("  Issue PHB reset ...\n");
+	pnv_eeh_phb_reset(hose, EEH_RESET_FUNDAMENTAL);
+	pnv_eeh_phb_reset(hose, EEH_RESET_DEACTIVATE);
+	pr_info("PHB Reset Complete\n");
 
 	/* Remove M64 resource if we can't configure it successfully */
 	if (!phb->init_m64 || phb->init_m64(phb))
