@@ -1899,6 +1899,8 @@ static pci_ers_result_t cxl_pci_slot_reset(struct pci_dev *pdev)
 	pci_ers_result_t result = PCI_ERS_RESULT_RECOVERED;
 	int i;
 
+	ssleep(3);
+
 	if (cxl_configure_adapter(adapter, pdev))
 		goto err;
 
