@@ -558,8 +558,8 @@ static void pnv_ioda_freeze_pe(struct pnv_phb *phb, int pe_no)
 
 static int pnv_ioda_unfreeze_pe(struct pnv_phb *phb, int pe_no, int opt)
 {
-	struct pnv_ioda_pe *pe; //, *slave;
-	s64 rc = -6;
+	struct pnv_ioda_pe *pe, *slave;
+	s64 rc;
 
 	/* Find master PE */
 	pe = &phb->ioda.pe_array[pe_no];
@@ -570,18 +570,18 @@ static int pnv_ioda_unfreeze_pe(struct pnv_phb *phb, int pe_no, int opt)
 	}
 
 	/* Clear frozen state for master PE */
-	//rc = opal_pci_eeh_freeze_clear(phb->opal_id, pe_no, opt);
-	//if (rc != OPAL_SUCCESS) {
+	rc = opal_pci_eeh_freeze_clear(phb->opal_id, pe_no, opt);
+	if (rc != OPAL_SUCCESS) {
 		pr_warn("%s: Failure %lld clear %d on PHB#%x-PE#%x\n",
 			__func__, rc, opt, phb->hose->global_number, pe_no);
 		return -EIO;
-		//}
-/*
+	}
+
 	if (!(pe->flags & PNV_IODA_PE_MASTER))
 		return 0;
-*/
+
 	/* Clear frozen state for slave PEs */
-/*	list_for_each_entry(slave, &pe->slaves, list) {
+	list_for_each_entry(slave, &pe->slaves, list) {
 		rc = opal_pci_eeh_freeze_clear(phb->opal_id,
 					     slave->pe_number,
 					     opt);
@@ -593,7 +593,7 @@ static int pnv_ioda_unfreeze_pe(struct pnv_phb *phb, int pe_no, int opt)
 		}
 	}
 
-	return 0; */
+	return 0;
 }
 
 static int pnv_ioda_get_pe_state(struct pnv_phb *phb, int pe_no)
