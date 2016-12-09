@@ -2445,19 +2445,13 @@ static DEFINE_MUTEX(pci_rescan_remove_lock);
 
 void pci_lock_rescan_remove(void)
 {
-	pr_warn("%s: called!", __func__);
-	dump_stack();
 	mutex_lock(&pci_rescan_remove_lock);
-	pr_warn("%s: locked!", __func__);
 }
 EXPORT_SYMBOL_GPL(pci_lock_rescan_remove);
 
 void pci_unlock_rescan_remove(void)
 {
-	pr_warn("%s: called!", __func__);
-	dump_stack();
 	mutex_unlock(&pci_rescan_remove_lock);
-	pr_warn("%s: unlocked!", __func__);
 }
 EXPORT_SYMBOL_GPL(pci_unlock_rescan_remove);
 
