@@ -1129,7 +1129,10 @@ static int pci_configure_afu(struct cxl_afu *afu, struct cxl *adapter, struct pc
 	if ((rc = cxl_native_register_psl_irq(afu)))
 		goto err2;
 
-	up_write(&afu->configured_rwsem);
+	// up_write(&afu->configured_rwsem);
+	lock(&afu->blah);
+	afu->configured = true;
+	unlock(&afu->blah);
 	return 0;
 
 err2:

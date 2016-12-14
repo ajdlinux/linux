@@ -107,8 +107,13 @@ static int cxl_pcie_read_config(struct pci_bus *bus, unsigned int devfn,
 
 	afu = pci_bus_to_afu(bus);
 	/* Grab a reader lock on afu. */
-	if (afu == NULL || !down_read_trylock(&afu->configured_rwsem))
+	if (afu == NULL) // || !down_read_trylock(&afu->configured_rwsem))
 		return PCIBIOS_DEVICE_NOT_FOUND;
+	lock(&afu->configured_lock);
+	if (!afu->configured) {
+		rc = PCIBIOS_DEVICE_NOT_FOUND;
+		goto out;
+	}
 
 	rc = cxl_pcie_config_info(bus, devfn, afu, &record);
 	if (rc)
@@ -132,7 +137,8 @@ static int cxl_pcie_read_config(struct pci_bus *bus, unsigned int devfn,
 	}
 
 out:
-	up_read(&afu->configured_rwsem);
+//	up_read(&afu->configured_rwsem);
+	unlock(&afu->configured_lock);
 	return rc ? PCIBIOS_DEVICE_NOT_FOUND : PCIBIOS_SUCCESSFUL;
 }
 
@@ -144,8 +150,13 @@ static int cxl_pcie_write_config(struct pci_bus *bus, unsigned int devfn,
 
 	afu = pci_bus_to_afu(bus);
 	/* Grab a reader lock on afu. */
-	if (afu == NULL || !down_read_trylock(&afu->configured_rwsem))
+	if (afu == NULL) // || !down_read_trylock(&afu->configured_rwsem))
 		return PCIBIOS_DEVICE_NOT_FOUND;
+	lock(&afu->blah);
+	if (!afu->configured) {
+		rc = PCIBIOS_DEVICE_NOT_FOUND;
+		goto out;
+	}
 
 	rc = cxl_pcie_config_info(bus, devfn, afu, &record);
 	if (rc)
@@ -166,7 +177,8 @@ static int cxl_pcie_write_config(struct pci_bus *bus, unsigned int devfn,
 	}
 
 out:
-	up_read(&afu->configured_rwsem);
+//	up_read(&afu->configured_rwsem);
+	unlock(&afu->blah);
 	return rc ? PCIBIOS_SET_FAILED : PCIBIOS_SUCCESSFUL;
 }
 
