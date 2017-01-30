@@ -115,7 +115,7 @@ static int cxl_pcie_read_config(struct pci_bus *bus, unsigned int devfn,
 
 	afu = pci_bus_to_afu(bus);
 	/* Grab a reader lock on afu. */
-	if (afu == NULL || !cxl_afu_configured_read_down(afu))
+	if (afu == NULL || !cxl_afu_configured_get(afu))
 		return PCIBIOS_DEVICE_NOT_FOUND;
 
 	rc = cxl_pcie_config_info(bus, devfn, afu, &record);
@@ -140,7 +140,7 @@ static int cxl_pcie_read_config(struct pci_bus *bus, unsigned int devfn,
 	}
 
 out:
-	cxl_afu_configured_read_up(afu);
+	cxl_afu_configured_put(afu);
 	return rc ? PCIBIOS_DEVICE_NOT_FOUND : PCIBIOS_SUCCESSFUL;
 }
 
@@ -152,7 +152,7 @@ static int cxl_pcie_write_config(struct pci_bus *bus, unsigned int devfn,
 
 	afu = pci_bus_to_afu(bus);
 	/* Grab a reader lock on afu. */
-	if (afu == NULL || !cxl_afu_configured_read_down(afu))
+	if (afu == NULL || !cxl_afu_configured_get(afu))
 		return PCIBIOS_DEVICE_NOT_FOUND;
 
 	rc = cxl_pcie_config_info(bus, devfn, afu, &record);
@@ -174,7 +174,7 @@ static int cxl_pcie_write_config(struct pci_bus *bus, unsigned int devfn,
 	}
 
 out:
-	cxl_afu_configured_read_up(afu);
+	cxl_afu_configured_put(afu);
 	return rc ? PCIBIOS_SET_FAILED : PCIBIOS_SUCCESSFUL;
 }
 
