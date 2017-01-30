@@ -988,7 +988,7 @@ void cxl_afu_configured_read_up(struct cxl_afu *afu) {
 }
 
 bool cxl_afu_configured_read_down(struct cxl_afu *afu) {
-	return atomic_inc_unless_negative(afu->configured_state);
+	return atomic_inc_unless_negative(&afu->configured_state);
 }
 
 
