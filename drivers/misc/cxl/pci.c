@@ -1129,11 +1129,7 @@ static int pci_configure_afu(struct cxl_afu *afu, struct cxl *adapter, struct pc
 	if ((rc = cxl_native_register_psl_irq(afu)))
 		goto err2;
 
-	// up_write(&afu->configured_rwsem);
-	cxl_afu_set_configured_state(afu);
-//	lock(&afu->blah);
-//	afu->configured = true;
-//	unlock(&afu->blah);
+	atomic_set(&afu->configured_state, 0);
 	return 0;
 
 err2:
@@ -1146,8 +1142,14 @@ err1:
 
 static void pci_deconfigure_afu(struct cxl_afu *afu)
 {
-	//down_write(&afu->configured_rwsem);
-	cxl_afu_set_deconfigured_state(afu);
+	/*
+	 * It's okay to deconfigure when AFU is already locked, otherwise wait
+	 * until there are no readers
+	 */
+	if (atomic_read(&afu->configured_state) != -1) {
+		while (atomic_cmpxchg(&afu->configured_state, 0, -1) != -1) {
+		}
+	}
 	cxl_native_release_psl_irq(afu);
 	if (afu->adapter->native->sl_ops->release_serr_irq)
 		afu->adapter->native->sl_ops->release_serr_irq(afu);
@@ -2004,23 +2006,3 @@ struct pci_driver cxl_pci_driver = {
 	.shutdown = cxl_remove,
 	.err_handler = &cxl_err_handler,
 };
-
-// TODO MOVE
-
-
-void cxl_afu_set_configured_state(struct cxl_afu *afu) {
-	atomic_set(&afu->configured_state, 0);
-}
-
-void cxl_afu_set_deconfigured_state(struct cxl_afu *afu) {
-	if (atomic_read(&afu->configured_state) == -1) return;
-	while (atomic_cmpxchg(&afu->configured_state, 0, -1) != -1) { }
-}
-
-void cxl_afu_configured_read_up(struct cxl_afu *afu) {
-	atomic_dec_if_positive(&afu->configured_state); // should this warn on failure?
-}
-
-bool cxl_afu_configured_read_down(struct cxl_afu *afu) {
-	return atomic_inc_unless_negative(&afu->configured_state);
-}

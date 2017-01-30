@@ -83,6 +83,14 @@ static inline struct cxl_afu *pci_bus_to_afu(struct pci_bus *bus)
 	return phb ? phb->private_data : NULL;
 }
 
+static void cxl_afu_configured_put(struct cxl_afu *afu) {
+	atomic_dec_if_positive(&afu->configured_state);
+}
+
+static bool cxl_afu_configured_get(struct cxl_afu *afu) {
+	return atomic_inc_unless_negative(&afu->configured_state);
+}
+
 static inline int cxl_pcie_config_info(struct pci_bus *bus, unsigned int devfn,
 				       struct cxl_afu *afu, int *_record)
 {
