@@ -973,23 +973,11 @@ void cxl_adapter_context_unlock(struct cxl *adapter);
 
 // configured: -1 == deconfigured/locked, > 0 == readers
 // When deconfiguring, we allow for < 0 but not > 0
+// FIXME rename, move
 
-void cxl_afu_set_configured_state(struct cxl_afu *afu) {
-	atomic_set(&afu->configured_state, 0);
-}
-
-void cxl_afu_set_deconfigured_state(struct cxl_afu *afu) {
-	if (atomic_read(&afu->configured_state) == -1) return;
-	while (atomic_cmpxchg(&afu->configured_state, 0, -1) != -1) { }
-}
-
-void cxl_afu_configured_read_up(struct cxl_afu *afu) {
-	atomic_dec_if_positive(&afu->configured_state); // should this warn on failure?
-}
-
-bool cxl_afu_configured_read_down(struct cxl_afu *afu) {
-	return atomic_inc_unless_negative(&afu->configured_state);
-}
-
+void cxl_afu_set_configured_state(struct cxl_afu *afu);
+void cxl_afu_set_deconfigured_state(struct cxl_afu *afu);
+void cxl_afu_configured_read_up(struct cxl_afu *afu);
+bool cxl_afu_configured_read_down(struct cxl_afu *afu);
 
 #endif
