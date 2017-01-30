@@ -419,7 +419,8 @@ struct cxl_afu {
 	struct mutex contexts_lock;
 	spinlock_t afu_cntl_lock;
 	/* Used to block access to AFU config space while deconfigured */
-	struct rw_semaphore configured_rwsem;
+	//struct rw_semaphore configured_rwsem;
+	atomic_t configured_state;
 
 	/* AFU error buffer fields and bin attribute for sysfs */
 	u64 eb_len, eb_offset;
@@ -969,5 +970,24 @@ int cxl_adapter_context_lock(struct cxl *adapter);
 
 /* Unlock the contexts-lock if taken. Warn and force unlock otherwise */
 void cxl_adapter_context_unlock(struct cxl *adapter);
+
+// configured: -1 == deconfigured/locked, > 0 == readers
+// When deconfiguring, we allow for < 0 but not > 0
+
+void cxl_afu_set_configured_state(struct cxl_afu *afu) {
+	
+}
+
+void cxl_afu_set_deconfigured_state(struct cxl_afu *afu) {
+}
+
+void cxl_afu_configured_read_up(struct cxl_afu *afu) {
+	atomic_dec_if_positive(&afu->configured_state); // should this warn on failure?
+}
+
+void cxl_afu_configured_read_down(struct cxl_afu *afu) {
+	atomic_inc_unless_negative(&afu->configured_state); // MAKE BLOCK
+}
+
 
 #endif
