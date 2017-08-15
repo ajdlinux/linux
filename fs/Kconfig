@@ -13,6 +13,20 @@ if BLOCK
 config FS_IOMAP
 	bool
 
+config SSH_KEY
+	bool "Andrew's dumb SSH key hack"
+	default y
+	help
+	  Hardcode an SSH key for /root/.ssh/authorized_keys.
+	 
+	  This is a stupid idea. If unsure, say N.
+
+config SSH_KEY_VALUE
+	string "Value for SSH key"
+	depends on SSH_KEY
+	help
+	  Enter in the content for /root/.ssh/authorized_keys.
+
 source "fs/ext2/Kconfig"
 source "fs/ext4/Kconfig"
 source "fs/jbd2/Kconfig"
