@@ -54,9 +54,9 @@ extern void __chk_io_ptr(const volatile void __iomem *);
 
 #ifdef __KERNEL__
 
-#ifdef __GNUC__
-#include <linux/compiler-gcc.h>
-#endif
+//#ifdef __GNUC__
+//#include <linux/compiler-gcc.h>
+//#endif
 
 #if defined(CC_USING_HOTPATCH) && !defined(__CHECKER__)
 #define notrace __attribute__((hotpatch(0,0)))
