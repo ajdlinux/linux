@@ -2725,25 +2725,58 @@ sub process {
 			} elsif ($line =~ /\b([0-9a-f]{12,40})\b/i) {
 				$orig_commit = lc($1);
 			}
-
 			$short = 0 if ($line =~ /\bcommit\s+[0-9a-f]{12,40}/i);
 			$long = 1 if ($line =~ /\bcommit\s+[0-9a-f]{41,}/i);
 			$space = 0 if ($line =~ /\bcommit [0-9a-f]/i);
 			$case = 0 if ($line =~ /\b[Cc]ommit\s+[0-9a-f]{5,40}[^A-F]/);
+
 			if ($line =~ /\bcommit\s+[0-9a-f]{5,}\s+\("([^"]+)"\)/i) {
+				# Reference fits on 1 line
 				$orig_desc = $1;
 				$hasparens = 1;
 			} elsif ($line =~ /\bcommit\s+[0-9a-f]{5,}\s*$/i &&
 				 defined $rawlines[$linenr] &&
 				 $rawlines[$linenr] =~ /^\s*\("([^"]+)"\)/) {
+				# line 1: 'commit <hash>',
+				# line 2: '("description")'
 				$orig_desc = $1;
 				$hasparens = 1;
 			} elsif ($line =~ /\bcommit\s+[0-9a-f]{5,}\s+\("[^"]+$/i &&
 				 defined $rawlines[$linenr] &&
 				 $rawlines[$linenr] =~ /^\s*[^"]+"\)/) {
+				# line 1: 'commit <hash> ("description',
+				# line 2: 'description continued")'
 				$line =~ /\bcommit\s+[0-9a-f]{5,}\s+\("([^"]+)$/i;
 				$orig_desc = $1;
 				$rawlines[$linenr] =~ /^\s*([^"]+)"\)/;
+				$orig_desc .= " " . $1;
+				$hasparens = 1;
+			} elsif ($line =~ /\bcommit\s+[0-9a-f]{5,}\s*$/i &&
+				 defined $rawlines[$linenr] &&
+				 defined $rawlines[$linenr + 1] &&
+				 $rawlines[$linenr] =~ /^\s*\("[^"]+/ &&
+				 $rawlines[$linenr + 1] =~ /^\s*[^"]+"\)/) {
+				# line 1: 'commit <hash>',
+				# line 2: '("description'
+				# line 3: 'description continued")'
+				$rawlines[$linenr] =~ /^\s*\("([^"]+)/;
+				$orig_desc = $1;
+				$rawlines[$linenr + 1] =~ /^\s*([^"]+)"\)/;
+				$orig_desc .= " " . $1;
+				$hasparens = 1;
+			} elsif ($line =~ /\bcommit\s+[0-9a-f]{5,}\s+\("[^"]+$/i &&
+				 defined $rawlines[$linenr] &&
+				 defined $rawlines[$linenr + 1] &&
+				 $rawlines[$linenr] =~ /^\s*[^"]+$/ &&
+				 $rawlines[$linenr + 1] =~ /^\s*[^"]+"\)/) {
+				# line 1: 'commit <hash> ("description',
+				# line 2: 'description continued'
+				# line 3: 'description continued")'
+				$line =~ /\bcommit\s+[0-9a-f]{5,}\s+\("([^"]+)$/i;
+				$orig_desc = $1;
+				$rawlines[$linenr] =~ /^\s*([^"]+)$/;
+				$orig_desc .= " " . $1;
+				$rawlines[$linenr + 1] =~ /^\s*([^"]+)"\)/;
 				$orig_desc .= " " . $1;
 				$hasparens = 1;
 			}
