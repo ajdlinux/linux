@@ -658,7 +658,7 @@ static void __init cpufeatures_setup_start(u32 isa)
 
 static bool __init cpufeatures_process_feature(struct dt_cpu_feature *f)
 {
-	const struct dt_cpu_feature_match *m = NULL;
+	const struct dt_cpu_feature_match *m;
 	bool known = false;
 	int i;
 
@@ -683,7 +683,7 @@ static bool __init cpufeatures_process_feature(struct dt_cpu_feature *f)
 		}
 	}
 
-	if (m && m->cpu_ftr_bit_mask)
+	if (m->cpu_ftr_bit_mask)
 		cur_cpu_spec->cpu_features |= m->cpu_ftr_bit_mask;
 
 	if (known)
