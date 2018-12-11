@@ -42,7 +42,7 @@ config GCC_PLUGIN_CYC_COMPLEXITY
 	  gcc plugin for the kernel.
 
 config GCC_PLUGIN_SANCOV
-	bool
+	bool "Sancov"
 	help
 	  This plugin inserts a __sanitizer_cov_trace_pc() call at the start of
 	  basic blocks. It supports all gcc versions with plugin support (from
