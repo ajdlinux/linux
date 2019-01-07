@@ -324,6 +324,10 @@ PHONY += ppc64le_guest_defconfig
 ppc64le_guest_defconfig:
 	$(call merge_into_defconfig,ppc64_defconfig,le guest)
 
+PHONY += ppc64le_guest_syzkaller_defconfig
+ppc64le_guest_syzkaller_defconfig:
+	$(call merge_into_defconfig,ppc64_defconfig,le guest syzkaller)
+
 PHONY += ppc64_guest_defconfig
 ppc64_guest_defconfig:
 	$(call merge_into_defconfig,ppc64_defconfig,be guest)
