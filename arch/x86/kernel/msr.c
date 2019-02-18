@@ -79,6 +79,9 @@ static ssize_t msr_write(struct file *file, const char __user *buf,
 	int err = 0;
 	ssize_t bytes = 0;
 
+	if (kernel_is_locked_down("Direct MSR access", LOCKDOWN_INTEGRITY))
+		return -EPERM;
+
 	if (count % 8)
 		return -EINVAL;	/* Invalid chunk size */
 
@@ -128,6 +131,11 @@ static long msr_ioctl(struct file *file, unsigned int ioc, unsigned long arg)
 		}
 		if (copy_from_user(&regs, uregs, sizeof(regs))) {
 			err = -EFAULT;
+			break;
+		}
+		if (kernel_is_locked_down("Direct MSR access",
+					  LOCKDOWN_INTEGRITY)) {
+			err = -EPERM;
 			break;
 		}
 		err = wrmsr_safe_regs_on_cpu(cpu, regs);
