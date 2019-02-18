@@ -311,6 +311,34 @@ static inline void refcount_error_report(struct pt_regs *regs, const char *err)
 { }
 #endif
 
+enum lockdown_level {
+	LOCKDOWN_NONE,
+	LOCKDOWN_INTEGRITY,
+	LOCKDOWN_CONFIDENTIALITY,
+	LOCKDOWN_MAX,
+};
+
+#ifdef CONFIG_LOCK_DOWN_KERNEL
+extern bool __kernel_is_locked_down(const char *what,
+				    enum lockdown_level level,
+				    bool first);
+#else
+static inline bool __kernel_is_locked_down(const char *what,
+					   enum lockdown_level level,
+					   bool first)
+{
+	return false;
+}
+#endif
+
+#define kernel_is_locked_down(what, level)				\
+	({								\
+		static bool message_given;				\
+		bool locked_down = __kernel_is_locked_down(what, level, !message_given); \
+		message_given = true;					\
+		locked_down;						\
+	})
+
 /* Internal, do not use. */
 int __must_check _kstrtoul(const char *s, unsigned int base, unsigned long *res);
 int __must_check _kstrtol(const char *s, unsigned int base, long *res);

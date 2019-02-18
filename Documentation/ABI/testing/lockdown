@@ -1,0 +1,19 @@
+What:		security/lockdown
+Date:		March 2019
+Contact:	Matthew Garrett <mjg59@google.com>
+Description:
+		If CONFIG_LOCK_DOWN_KERNEL is enabled, the kernel can be
+		moved to a more locked down state at runtime by writing to
+		this attribute. Valid values are:
+
+		integrity:
+			The kernel will disable functionality that allows
+			userland to modify the running kernel image, other
+			than through the loading or execution of appropriately
+			signed objects.
+
+		confidentiality:
+			The kernel will disable all functionality disabled by
+			the integrity mode, but additionally will disable
+			features that potentially permit userland to obtain
+			confidential information stored within the kernel.
