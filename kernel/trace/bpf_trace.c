@@ -139,6 +139,9 @@ BPF_CALL_3(bpf_probe_read, void *, dst, u32, size, const void *, unsafe_ptr)
 {
 	int ret;
 
+	if (kernel_is_locked_down("BPF", LOCKDOWN_CONFIDENTIALITY))
+		return -EINVAL;
+
 	ret = probe_kernel_read(dst, unsafe_ptr, size);
 	if (unlikely(ret < 0))
 		memset(dst, 0, size);
@@ -158,6 +161,8 @@ static const struct bpf_func_proto bpf_probe_read_proto = {
 BPF_CALL_3(bpf_probe_write_user, void *, unsafe_ptr, const void *, src,
 	   u32, size)
 {
+	if (kernel_is_locked_down("BPF", LOCKDOWN_CONFIDENTIALITY))
+		return -EINVAL;
 	/*
 	 * Ensure we're in user context which is safe for the helper to
 	 * run. This helper has no business in a kthread.
@@ -214,6 +219,9 @@ BPF_CALL_5(bpf_trace_printk, char *, fmt, u32, fmt_size, u64, arg1,
 	u64 unsafe_addr;
 	char buf[64];
 	int i;
+
+	if (kernel_is_locked_down("BPF", LOCKDOWN_CONFIDENTIALITY))
+		return -EINVAL;
 
 	/*
 	 * bpf_check()->check_func_arg()->check_stack_boundary()
@@ -565,6 +573,9 @@ BPF_CALL_3(bpf_probe_read_str, void *, dst, u32, size,
 	   const void *, unsafe_ptr)
 {
 	int ret;
+
+	if (kernel_is_locked_down("BPF", LOCKDOWN_CONFIDENTIALITY))
+		return -EINVAL;
 
 	/*
 	 * The strncpy_from_unsafe() call will likely not fill the entire
