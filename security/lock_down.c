@@ -70,8 +70,8 @@ bool __kernel_is_locked_down(const char *what, enum lockdown_level level,
 			     bool first)
 {
 	if ((kernel_locked_down >= level) && what && first)
-		pr_notice("Lockdown: %s is restricted; see man kernel_lockdown.7\n",
-			  what);
+		pr_notice("Lockdown: %s: %s is restricted; see man kernel_lockdown.7\n",
+			  current->comm, what);
 	return (kernel_locked_down >= level);
 }
 EXPORT_SYMBOL(__kernel_is_locked_down);
