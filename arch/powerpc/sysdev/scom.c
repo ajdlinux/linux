@@ -100,6 +100,10 @@ static ssize_t scom_debug_read(struct file *filp, char __user *ubuf,
 	scom_map_t map;
 	int rc;
 
+	// TODO: Can we leave read enabled in integrity-only mode?
+	if (kernel_is_locked_down("SCOM access", LOCKDOWN_CONFIDENTIALITY))
+		return -EPERM;
+
 	if (off < 0 || (off & 7) || (count & 7))
 		return -EINVAL;
 	reg = off >> 3;
@@ -136,6 +140,9 @@ static ssize_t scom_debug_write(struct file* filp, const char __user *ubuf,
 	u64 reg, reg_cnt, val;
 	scom_map_t map;
 	int rc;
+
+	if (kernel_is_locked_down("SCOM access", LOCKDOWN_INTEGRITY))
+		return -EPERM;
 
 	if (off < 0 || (off & 7) || (count & 7))
 		return -EINVAL;
