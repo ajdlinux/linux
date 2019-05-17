@@ -406,7 +406,7 @@ void ppc_enable_pmcs(void)
 }
 EXPORT_SYMBOL(ppc_enable_pmcs);
 
-#define __SYSFS_SPRSETUP_READ_WRITE(NAME, ADDRESS, EXTRA) \
+#define __SYSFS_SPRSETUP_READ_WRITE(NAME, ADDRESS, EXTRA)	\
 static void read_##NAME(void *val) \
 { \
 	*(unsigned long *)val = mfspr(ADDRESS);	\
@@ -417,13 +417,15 @@ static void write_##NAME(void *val) \
 	mtspr(ADDRESS, *(unsigned long *)val);	\
 }
 
-#define __SYSFS_SPRSETUP_SHOW_STORE(NAME) \
+#define __SYSFS_SPRSETUP_SHOW_STORE(NAME, LOCKDOWN_LEVEL)     \
 static ssize_t show_##NAME(struct device *dev, \
 			struct device_attribute *attr, \
 			char *buf) \
 { \
 	struct cpu *cpu = container_of(dev, struct cpu, dev); \
 	unsigned long val; \
+	if (kernel_is_locked_down("SPR access", LOCKDOWN_LEVEL))	\
+		return -EPERM; \
 	smp_call_function_single(cpu->dev.id, read_##NAME, &val, 1);	\
 	return sprintf(buf, "%lx\n", val); \
 } \
@@ -434,6 +436,8 @@ static ssize_t __used \
 	struct cpu *cpu = container_of(dev, struct cpu, dev); \
 	unsigned long val; \
 	int ret = sscanf(buf, "%lx", &val); \
+	if (kernel_is_locked_down("SPR access", LOCKDOWN_LEVEL)) \
+		return -EPERM; \
 	if (ret != 1) \
 		return -EINVAL; \
 	smp_call_function_single(cpu->dev.id, write_##NAME, &val, 1); \
@@ -442,13 +446,13 @@ static ssize_t __used \
 
 #define SYSFS_PMCSETUP(NAME, ADDRESS) \
 	__SYSFS_SPRSETUP_READ_WRITE(NAME, ADDRESS, ppc_enable_pmcs()) \
-	__SYSFS_SPRSETUP_SHOW_STORE(NAME)
+	__SYSFS_SPRSETUP_SHOW_STORE(NAME, LOCKDOWN_INTEGRITY)
 #define SYSFS_SPRSETUP(NAME, ADDRESS) \
 	__SYSFS_SPRSETUP_READ_WRITE(NAME, ADDRESS, ) \
-	__SYSFS_SPRSETUP_SHOW_STORE(NAME)
+	__SYSFS_SPRSETUP_SHOW_STORE(NAME, LOCKDOWN_INTEGRITY)
 
-#define SYSFS_SPRSETUP_SHOW_STORE(NAME) \
-	__SYSFS_SPRSETUP_SHOW_STORE(NAME)
+#define SYSFS_SPRSETUP_SHOW_STORE(NAME, LOCKDOWN_LEVEL)	\
+	__SYSFS_SPRSETUP_SHOW_STORE(NAME, LOCKDOWN_LEVEL)
 
 /* Let's define all possible registers, we'll only hook up the ones
  * that are implemented on the current processor
@@ -537,7 +541,7 @@ static void write_dscr(void *val)
 	}
 }
 
-SYSFS_SPRSETUP_SHOW_STORE(dscr);
+SYSFS_SPRSETUP_SHOW_STORE(dscr, LOCKDOWN_MAX);
 static DEVICE_ATTR(dscr, 0600, show_dscr, store_dscr);
 
 static void add_write_permission_dev_attr(struct device_attribute *attr)
