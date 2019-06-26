@@ -902,6 +902,14 @@ config PPC_MEM_KEYS
 
 	  If unsure, say y.
 
+config PPC_SPR_SYSFS
+       bool "Enable access to SPRs via sysfs"
+       default n
+       help
+         Expose access to some Special Purpose Registers (SPRs) via sysfs.
+
+	 If unsure, say n.
+
 endmenu
 
 config ISA_DMA_API
