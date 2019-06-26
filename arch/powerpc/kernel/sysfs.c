@@ -450,6 +450,7 @@ static ssize_t __used \
 #define SYSFS_SPRSETUP_SHOW_STORE(NAME) \
 	__SYSFS_SPRSETUP_SHOW_STORE(NAME)
 
+#ifdef CONFIG_PPC_SPR_SYSFS
 /* Let's define all possible registers, we'll only hook up the ones
  * that are implemented on the current processor
  */
@@ -499,7 +500,11 @@ static DEVICE_ATTR(spurr, 0400, show_spurr, NULL);
 static DEVICE_ATTR(purr, 0400, show_purr, store_purr);
 static DEVICE_ATTR(pir, 0400, show_pir, NULL);
 static DEVICE_ATTR(tscr, 0600, show_tscr, store_tscr);
+#endif /* CONFIG_PPC64 */
+#endif /* HAS_PPC_PMC_CLASSIC */
+#endif /* CONFIG_PPC_SPR_SYSFS */
 
+#ifdef CONFIG_PPC64
 /*
  * This is the system wide DSCR register default value. Any
  * change to this default value through the sysfs interface
@@ -540,10 +545,13 @@ static void write_dscr(void *val)
 SYSFS_SPRSETUP_SHOW_STORE(dscr);
 static DEVICE_ATTR(dscr, 0600, show_dscr, store_dscr);
 
+// TODO: Where's the sensible place for this to go?
+#ifdef CONFIG_PPC_SPR_SYSFS
 static void add_write_permission_dev_attr(struct device_attribute *attr)
 {
 	attr->attr.mode |= 0200;
 }
+#endif /* CONFIG_PPC_SPR_SYSFS */
 
 /**
  * show_dscr_default() - Fetch the system wide DSCR default
@@ -603,7 +611,10 @@ static void sysfs_create_dscr_default(void)
 }
 
 #endif /* CONFIG_PPC64 */
+// TODO: Do we need to put HAAS_PPC_PMC_CLASSIC around this segment too? idk
 
+#ifdef CONFIG_PPC_SPR_SYSFS
+#ifdef HAS_PPC_PMC_CLASSIC
 #ifdef HAS_PPC_PMC_PA6T
 SYSFS_PMCSETUP(pa6t_pmc0, SPRN_PA6T_PMC0);
 SYSFS_PMCSETUP(pa6t_pmc1, SPRN_PA6T_PMC1);
@@ -611,7 +622,7 @@ SYSFS_PMCSETUP(pa6t_pmc2, SPRN_PA6T_PMC2);
 SYSFS_PMCSETUP(pa6t_pmc3, SPRN_PA6T_PMC3);
 SYSFS_PMCSETUP(pa6t_pmc4, SPRN_PA6T_PMC4);
 SYSFS_PMCSETUP(pa6t_pmc5, SPRN_PA6T_PMC5);
-#ifdef CONFIG_DEBUG_MISC
+#ifdef CONFIG_DEBUG_MISC // TODO: Maybe get rid of this?
 SYSFS_SPRSETUP(hid0, SPRN_HID0);
 SYSFS_SPRSETUP(hid1, SPRN_HID1);
 SYSFS_SPRSETUP(hid4, SPRN_HID4);
@@ -715,21 +726,11 @@ static struct device_attribute pa6t_attrs[] = {
 #endif /* HAS_PPC_PMC_PA6T */
 #endif /* HAS_PPC_PMC_CLASSIC */
 
-static int register_cpu_online(unsigned int cpu)
+// TODO: Check if all of these are right...
+static void register_cpu_sprs(struct device *s)
 {
-	struct cpu *c = &per_cpu(cpu_devices, cpu);
-	struct device *s = &c->dev;
 	struct device_attribute *attrs, *pmc_attrs;
 	int i, nattrs;
-
-	/* For cpus present at boot a reference was already grabbed in register_cpu() */
-	if (!s->of_node)
-		s->of_node = of_get_cpu_node(cpu, NULL);
-
-#ifdef CONFIG_PPC64
-	if (cpu_has_feature(CPU_FTR_SMT))
-		device_create_file(s, &dev_attr_smt_snooze_delay);
-#endif
 
 	/* PMC stuff */
 	switch (cur_cpu_spec->pmc_type) {
@@ -801,24 +802,13 @@ static int register_cpu_online(unsigned int cpu)
 		device_create_file(s, &dev_attr_altivec_idle_wait_time);
 	}
 #endif
-	cacheinfo_cpu_online(cpu);
-	return 0;
+
 }
 
-#ifdef CONFIG_HOTPLUG_CPU
-static int unregister_cpu_online(unsigned int cpu)
+static void unregister_cpu_sprs(struct device *s)
 {
-	struct cpu *c = &per_cpu(cpu_devices, cpu);
-	struct device *s = &c->dev;
 	struct device_attribute *attrs, *pmc_attrs;
 	int i, nattrs;
-
-	BUG_ON(!c->hotpluggable);
-
-#ifdef CONFIG_PPC64
-	if (cpu_has_feature(CPU_FTR_SMT))
-		device_remove_file(s, &dev_attr_smt_snooze_delay);
-#endif
 
 	/* PMC stuff */
 	switch (cur_cpu_spec->pmc_type) {
@@ -887,6 +877,59 @@ static int unregister_cpu_online(unsigned int cpu)
 		device_remove_file(s, &dev_attr_altivec_idle_wait_time);
 	}
 #endif
+}
+
+#else /* CONFIG_PPC_SPR_SYSFS */
+static void register_cpu_sprs(struct device *s)
+{
+	// TODO This is real ugly
+#ifdef CONFIG_PPC64
+	if (cpu_has_feature(CPU_FTR_DSCR))
+		device_create_file(s, &dev_attr_dscr);
+#endif
+}
+
+static void unregister_cpu_sprs(struct device *s)
+{
+	// TODO this is real ugly
+#ifdef CONFIG_PPC64
+	if (cpu_has_feature(CPU_FTR_DSCR))
+		device_remove_file(s, &dev_attr_dscr);
+#endif
+}
+#endif /* CONFIG_PPC_SPR_SYSFS */
+
+static int register_cpu_online(unsigned int cpu)
+{
+	struct cpu *c = &per_cpu(cpu_devices, cpu);
+	struct device *s = &c->dev;
+
+	/* For cpus present at boot a reference was already grabbed in register_cpu() */
+	if (!s->of_node)
+		s->of_node = of_get_cpu_node(cpu, NULL);
+
+#ifdef CONFIG_PPC64
+	if (cpu_has_feature(CPU_FTR_SMT))
+		device_create_file(s, &dev_attr_smt_snooze_delay);
+#endif
+	register_cpu_sprs(s);
+	cacheinfo_cpu_online(cpu);
+	return 0;
+}
+
+#ifdef CONFIG_HOTPLUG_CPU
+static int unregister_cpu_online(unsigned int cpu)
+{
+	struct cpu *c = &per_cpu(cpu_devices, cpu);
+	struct device *s = &c->dev;
+
+	BUG_ON(!c->hotpluggable);
+
+#ifdef CONFIG_PPC64
+	if (cpu_has_feature(CPU_FTR_SMT))
+		device_remove_file(s, &dev_attr_smt_snooze_delay);
+#endif
+	unregister_cpu_sprs(s);
 	cacheinfo_cpu_offline(cpu);
 	of_node_put(s->of_node);
 	s->of_node = NULL;
