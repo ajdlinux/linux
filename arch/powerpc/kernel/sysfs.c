@@ -456,17 +456,15 @@ static ssize_t __used \
  */
 
 #if defined(CONFIG_PPC64)
-#define HAS_PPC_PMC_CLASSIC	1
-#define HAS_PPC_PMC_IBM		1
+#define HAS_PPC_PMC_CLASSIC_IBM	1
 #define HAS_PPC_PMC_PA6T	1
 #elif defined(CONFIG_PPC_BOOK3S_32)
-#define HAS_PPC_PMC_CLASSIC	1
-#define HAS_PPC_PMC_IBM		1
+#define HAS_PPC_PMC_CLASSIC_IBM	1
 #define HAS_PPC_PMC_G4		1
 #endif
 
 
-#ifdef HAS_PPC_PMC_CLASSIC
+#ifdef HAS_PPC_PMC_CLASSIC_IBM
 SYSFS_PMCSETUP(mmcr0, SPRN_MMCR0);
 SYSFS_PMCSETUP(mmcr1, SPRN_MMCR1);
 SYSFS_PMCSETUP(pmc1, SPRN_PMC1);
@@ -501,7 +499,7 @@ static DEVICE_ATTR(purr, 0400, show_purr, store_purr);
 static DEVICE_ATTR(pir, 0400, show_pir, NULL);
 static DEVICE_ATTR(tscr, 0600, show_tscr, store_tscr);
 #endif /* CONFIG_PPC64 */
-#endif /* HAS_PPC_PMC_CLASSIC */
+#endif /* HAS_PPC_PMC_CLASSIC_IBM */
 #endif /* CONFIG_PPC_SPR_SYSFS */
 
 #ifdef CONFIG_PPC64
@@ -614,7 +612,7 @@ static void sysfs_create_dscr_default(void)
 // TODO: Do we need to put HAAS_PPC_PMC_CLASSIC around this segment too? idk
 
 #ifdef CONFIG_PPC_SPR_SYSFS
-#ifdef HAS_PPC_PMC_CLASSIC
+//#ifdef HAS_PPC_PMC_CLASSIC_IBM
 #ifdef HAS_PPC_PMC_PA6T
 SYSFS_PMCSETUP(pa6t_pmc0, SPRN_PA6T_PMC0);
 SYSFS_PMCSETUP(pa6t_pmc1, SPRN_PA6T_PMC1);
@@ -654,13 +652,6 @@ SYSFS_SPRSETUP(tsr3, SPRN_PA6T_TSR3);
 #endif /* CONFIG_DEBUG_MISC */
 #endif /* HAS_PPC_PMC_PA6T */
 
-#ifdef HAS_PPC_PMC_IBM
-static struct device_attribute ibm_common_attrs[] = {
-	__ATTR(mmcr0, 0600, show_mmcr0, store_mmcr0),
-	__ATTR(mmcr1, 0600, show_mmcr1, store_mmcr1),
-};
-#endif /* HAS_PPC_PMC_IBM */
-
 #ifdef HAS_PPC_PMC_G4
 static struct device_attribute g4_common_attrs[] = {
 	__ATTR(mmcr0, 0600, show_mmcr0, store_mmcr0),
@@ -668,6 +659,13 @@ static struct device_attribute g4_common_attrs[] = {
 	__ATTR(mmcr2, 0600, show_mmcr2, store_mmcr2),
 };
 #endif /* HAS_PPC_PMC_G4 */
+
+
+#ifdef HAS_PPC_PMC_CLASSIC_IBM
+static struct device_attribute ibm_common_attrs[] = {
+	__ATTR(mmcr0, 0600, show_mmcr0, store_mmcr0),
+	__ATTR(mmcr1, 0600, show_mmcr1, store_mmcr1),
+};
 
 static struct device_attribute classic_pmc_attrs[] = {
 	__ATTR(pmc1, 0600, show_pmc1, store_pmc1),
@@ -681,6 +679,7 @@ static struct device_attribute classic_pmc_attrs[] = {
 	__ATTR(pmc8, 0600, show_pmc8, store_pmc8),
 #endif
 };
+#endif /* HAS_PPC_PMC_CLASSIC_IBM */
 
 #ifdef HAS_PPC_PMC_PA6T
 static struct device_attribute pa6t_attrs[] = {
@@ -724,7 +723,6 @@ static struct device_attribute pa6t_attrs[] = {
 #endif /* CONFIG_DEBUG_MISC */
 };
 #endif /* HAS_PPC_PMC_PA6T */
-#endif /* HAS_PPC_PMC_CLASSIC */
 
 // TODO: Check if all of these are right...
 static void register_cpu_sprs(struct device *s)
