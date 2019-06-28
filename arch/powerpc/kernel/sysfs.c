@@ -659,7 +659,7 @@ static struct device_attribute ibm_common_attrs[] = {
 	__ATTR(mmcr0, 0600, show_mmcr0, store_mmcr0),
 	__ATTR(mmcr1, 0600, show_mmcr1, store_mmcr1),
 };
-#endif /* HAS_PPC_PMC_G4 */
+#endif /* HAS_PPC_PMC_IBM */
 
 #ifdef HAS_PPC_PMC_G4
 static struct device_attribute g4_common_attrs[] = {
