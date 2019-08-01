@@ -331,6 +331,14 @@ PHONY += powernv_be_defconfig
 powernv_be_defconfig:
 	$(call merge_into_defconfig,powernv_defconfig,be)
 
+PHONY += powernv_be_debug_defconfig
+powernv_be_debug_defconfig:
+	$(call merge_into_defconfig,powernv_defconfig,be debug)
+
+PHONY += powernv_debug_defconfig
+powernv_debug_defconfig:
+	$(call merge_into_defconfig,powernv_defconfig,debug)
+
 PHONY += mpc85xx_defconfig
 mpc85xx_defconfig:
 	$(call merge_into_defconfig,mpc85xx_basic_defconfig,\
