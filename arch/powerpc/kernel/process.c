@@ -1685,7 +1685,11 @@ static void setup_ksp_vsid(struct task_struct *p, unsigned long sp)
 {
 #ifdef CONFIG_PPC_64S_HASH_MMU
 	unsigned long sp_vsid;
+#ifdef CONFIG_VMAP_STACK
+	unsigned long llp = mmu_psize_defs[mmu_vmalloc_psize].sllp;
+#else /* CONFIG_VMAP_STACK */
 	unsigned long llp = mmu_psize_defs[mmu_linear_psize].sllp;
+#endif /* CONFIG_VMAP_STACK */
 
 	if (radix_enabled())
 		return;
