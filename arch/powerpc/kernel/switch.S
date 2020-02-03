@@ -167,7 +167,9 @@ END_FTR_SECTION_IFCLR(CPU_FTR_ARCH_207S)
 #endif
 	/* Set new PACAKSAVE */
 	clrrdi	r7,r8,THREAD_SHIFT	/* base of new stack */
-	addi	r7,r7,THREAD_SIZE-SWITCH_FRAME_SIZE
+	li	r9,0
+	ori	r9,r9,THREAD_SIZE-SWITCH_FRAME_SIZE
+	add	r7,r7,r9
 	std	r7,PACAKSAVE(r13)
 
 #ifdef CONFIG_PPC_64S_HASH_MMU
