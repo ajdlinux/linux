@@ -30,8 +30,14 @@
 _GLOBAL(call_do_softirq)
 	mflr	r0
 	std	r0,16(r1)
-	stdu	r1,THREAD_SIZE-STACK_FRAME_OVERHEAD(r3)
+
+	/* Is it fine to use r0 here? */
+	li	r0,0
+	ori	r0,r0,THREAD_SIZE-STACK_FRAME_OVERHEAD
+	stdux	r1,r3,r0
 	mr	r1,r3
+	mflr	r0 /* move it back in case */
+
 	bl	__do_softirq
 	ld	r1,0(r1)
 	ld	r0,16(r1)
@@ -41,8 +47,14 @@ _GLOBAL(call_do_softirq)
 _GLOBAL(call_do_irq)
 	mflr	r0
 	std	r0,16(r1)
-	stdu	r1,THREAD_SIZE-STACK_FRAME_OVERHEAD(r4)
+
+	/* Is it fine to use r0 here? */
+	li	r0,0
+	ori	r0,r0,THREAD_SIZE-STACK_FRAME_OVERHEAD
+	stdux	r1,r4,r0
 	mr	r1,r4
+	mflr	r0 /* move it back in case */
+
 	bl	__do_irq
 	ld	r1,0(r1)
 	ld	r0,16(r1)
@@ -407,8 +419,12 @@ _GLOBAL(kexec_sequence)
 	std	r0,16(r1)
 
 	/* switch stacks to newstack -- &kexec_stack.stack */
-	stdu	r1,THREAD_SIZE-STACK_FRAME_OVERHEAD(r3)
+	/* Is it fine to use r0 here? */
+	li	r0,0
+	ori	r0,r0,THREAD_SIZE-STACK_FRAME_OVERHEAD
+	stdux	r1,r3,r0
 	mr	r1,r3
+	mflr	r0 /* move it back in case */
 
 	li	r0,0
 	std	r0,16(r1)

@@ -3270,7 +3270,11 @@ kvmppc_bad_host_intr:
 	mr	r9, r1
 	std	r1, PACAR1(r13)
 	ld	r1, PACAEMERGSP(r13)
-	subi	r1, r1, THREAD_SIZE/2 + INT_FRAME_SIZE
+	/* HACK: just make this one quarter of the way down rather than halfway,
+	 * so this works with the larger THREAD_SIZE of VMAP_STACK...
+	 * TODO: fix properly
+	 */
+	subi	r1, r1, THREAD_SIZE/4 + INT_FRAME_SIZE
 	std	r9, 0(r1)
 	std	r0, GPR0(r1)
 	std	r9, GPR1(r1)
