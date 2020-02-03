@@ -238,7 +238,9 @@ END_FTR_SECTION_IFCLR(CPU_FTR_ARCH_207S)
 	/* Note: this uses SWITCH_FRAME_SIZE rather than INT_FRAME_SIZE
 	   because we don't need to leave the 288-byte ABI gap at the
 	   top of the kernel stack. */
-	addi	r7,r7,THREAD_SIZE-SWITCH_FRAME_SIZE
+	li	r9,0
+	ori	r9,r9,THREAD_SIZE-SWITCH_FRAME_SIZE
+	add	r7,r7,r9
 
 	/*
 	 * PMU interrupts in radix may come in here. They will use r1, not
