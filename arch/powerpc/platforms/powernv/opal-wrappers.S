@@ -16,6 +16,13 @@
 	.section ".text"
 
 /*
+ * Current thought:
+	stash the MSR in r1, rather than the stack pointer
+	store the stack pointer in the PACA - we keep PACA pointer in r13????
+	ah wait, the PACA is going to keep the base of the stack, not the current stack pointer??
+	it looks like skiboot only restores LR (to jump to opal_return), R1, R13?????
+	I don't think we can just enable IR/DR in the MSR all the time in the return path, because we might be calling this from real mode already?????
+	stash the MSR in r13, rather than the PACA, keep a pointer to the PACA on the stack that we can recover??????????
  * r3-r10		- OPAL call arguments
  * STK_PARAM(R11)	- OPAL opcode
  * STK_PARAM(R12)	- MSR to restore
@@ -45,16 +52,16 @@ opal_return:
 	mtmsrd	r11
 #else
 	/* Endian can only be switched with rfi, must byte reverse MSR load */
-	.short 0x4039	 /* li r10,STK_PARAM(R12)		*/
+	.short 0x4039	 /* li r10,STK_PARAM(R12)		*/ // R10 = stack offset of new MSR
 	.byte (STK_PARAM(R12) >> 8) & 0xff
 	.byte STK_PARAM(R12) & 0xff
 
-	.long 0x280c6a7d /* ldbrx r11,r10,r1			*/
-	.long 0x05009f42 /* bcl 20,31,$+4			*/
-	.long 0xa602487d /* mflr r10				*/
-	.long 0x14004a39 /* addi r10,r10,20			*/
-	.long 0xa64b5a7d /* mthsrr0 r10				*/
-	.long 0xa64b7b7d /* mthsrr1 r11				*/
+	.long 0x280c6a7d /* ldbrx r11,r10,r1			*/ // R11 = new MSR
+	.long 0x05009f42 /* bcl 20,31,$+4			*/ // LR = next insn addr
+	.long 0xa602487d /* mflr r10				*/ // R10 = LR = addr of this insn
+	.long 0x14004a39 /* addi r10,r10,20			*/ // R10 = addr of insn after endif
+	.long 0xa64b5a7d /* mthsrr0 r10				*/ // New NIP
+	.long 0xa64b7b7d /* mthsrr1 r11				*/ // New MSR
 	.long 0x2402004c /* hrfid				*/
 #endif
 	ld	r2,PACATOC(r13)
