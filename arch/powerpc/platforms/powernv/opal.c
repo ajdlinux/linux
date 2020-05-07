@@ -354,7 +354,7 @@ static void opal_handle_message(void)
 	s64 ret;
 	u32 type;
 
-	ret = opal_get_msg(__pa(opal_msg), opal_msg_size);
+	ret = opal_get_msg((uint64_t)stack_pa(opal_msg), opal_msg_size);
 	/* No opal message pending. */
 	if (ret == OPAL_RESOURCE)
 		return;
@@ -428,11 +428,11 @@ ssize_t opal_get_chars(uint32_t vtermno, u8 *buf, size_t count)
 
 	if (!opal.entry)
 		return -ENODEV;
-	opal_poll_events(&evt);
+	opal_poll_events(stack_pa(&evt));
 	if ((be64_to_cpu(evt) & OPAL_EVENT_CONSOLE_INPUT) == 0)
 		return 0;
 	len = cpu_to_be64(count);
-	rc = opal_console_read(vtermno, &len, buf);
+	rc = opal_console_read(vtermno, stack_pa(&len), stack_pa(buf));
 	if (rc == OPAL_SUCCESS)
 		return be64_to_cpu(len);
 	return 0;
@@ -451,7 +451,7 @@ static ssize_t __opal_put_chars(uint32_t vtermno, const u8 *data,
 
 	if (atomic)
 		spin_lock_irqsave(&opal_write_lock, flags);
-	rc = opal_console_write_buffer_space(vtermno, &olen);
+	rc = opal_console_write_buffer_space(vtermno, stack_pa(&olen));
 	if (rc || be64_to_cpu(olen) < total_len) {
 		/* Closed -> drop characters */
 		if (rc)
@@ -463,7 +463,7 @@ static ssize_t __opal_put_chars(uint32_t vtermno, const u8 *data,
 
 	/* Should not get a partial write here because space is available. */
 	olen = cpu_to_be64(total_len);
-	rc = opal_console_write(vtermno, &olen, data);
+	rc = opal_console_write(vtermno, stack_pa(&olen), stack_pa((void *)data));
 	if (rc == OPAL_BUSY || rc == OPAL_BUSY_EVENT) {
 		if (rc == OPAL_BUSY_EVENT)
 			opal_poll_events(NULL);
@@ -526,7 +526,7 @@ static s64 __opal_flush_console(uint32_t vtermno)
 		 */
 		WARN_ONCE(1, "opal: OPAL_CONSOLE_FLUSH missing.\n");
 
-		opal_poll_events(&evt);
+		opal_poll_events(stack_pa(&evt));
 		if (!(be64_to_cpu(evt) & OPAL_EVENT_CONSOLE_OUTPUT))
 			return OPAL_SUCCESS;
 		return OPAL_BUSY;
@@ -646,7 +646,7 @@ void __noreturn pnv_platform_error_reboot(struct pt_regs *regs, const char *msg)
 	 * Don't bother to shut things down because this will
 	 * xstop the system.
 	 */
-	if (opal_cec_reboot2(OPAL_REBOOT_PLATFORM_ERROR, msg)
+	if (opal_cec_reboot2(OPAL_REBOOT_PLATFORM_ERROR, stack_pa((void *)msg))
 						== OPAL_UNSUPPORTED) {
 		pr_emerg("Reboot type %d not supported for %s\n",
 				OPAL_REBOOT_PLATFORM_ERROR, msg);
@@ -719,7 +719,7 @@ int opal_hmi_exception_early2(struct pt_regs *regs)
 	 * Check 64-bit flag mask to find out if an event was generated,
 	 * and whether TB is still valid or not etc.
 	 */
-	rc = opal_handle_hmi2(&out_flags);
+	rc = opal_handle_hmi2(stack_pa(&out_flags));
 	if (rc != OPAL_SUCCESS)
 		return 0;
 
