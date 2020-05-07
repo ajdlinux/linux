@@ -51,8 +51,11 @@ int xive_native_populate_irq_data(u32 hw_irq, struct xive_irq_data *data)
 
 	memset(data, 0, sizeof(*data));
 
-	rc = opal_xive_get_irq_info(hw_irq, &flags, &eoi_page, &trig_page,
-				    &esb_shift, &src_chip);
+	rc = opal_xive_get_irq_info(hw_irq, stack_pa(&flags),
+				    stack_pa(&eoi_page),
+				    stack_pa(&trig_page),
+				    stack_pa(&esb_shift),
+				    stack_pa(&src_chip));
 	if (rc) {
 		pr_err("opal_xive_get_irq_info(0x%x) returned %lld\n",
 		       hw_irq, rc);
@@ -114,7 +117,8 @@ static int xive_native_get_irq_config(u32 hw_irq, u32 *target, u8 *prio,
 	__be64 vp;
 	__be32 lirq;
 
-	rc = opal_xive_get_irq_config(hw_irq, &vp, prio, &lirq);
+	rc = opal_xive_get_irq_config(hw_irq, stack_pa(&vp), prio,
+				      stack_pa(&lirq));
 
 	*target = be64_to_cpu(vp);
 	*sw_irq = be32_to_cpu(lirq);
@@ -137,7 +141,7 @@ int xive_native_configure_queue(u32 vp_id, struct xive_q *q, u8 prio,
 	if (order) {
 		if (WARN_ON(!qpage))
 			return -EINVAL;
-		qpage_phys = __pa(qpage);
+		qpage_phys = __pa(qpage); // TODO: Maybe we can replace this with stack_pa
 	} else
 		qpage_phys = 0;
 
@@ -147,8 +151,8 @@ int xive_native_configure_queue(u32 vp_id, struct xive_q *q, u8 prio,
 	q->toggle = 0;
 
 	rc = opal_xive_get_queue_info(vp_id, prio, NULL, NULL,
-				      &qeoi_page_be,
-				      &esc_irq_be,
+				      stack_pa(&qeoi_page_be),
+				      stack_pa(&esc_irq_be),
 				      NULL);
 	if (rc) {
 		vp_err(vp_id, "Failed to get queue %d info : %lld\n", prio, rc);
@@ -408,7 +412,8 @@ static void xive_native_setup_cpu(unsigned int cpu, struct xive_cpu *xc)
 	}
 
 	/* Grab it's CAM value */
-	rc = opal_xive_get_vp_info(vp, NULL, &vp_cam_be, NULL, NULL);
+	rc = opal_xive_get_vp_info(vp, NULL, stack_pa(&vp_cam_be), NULL,
+				   NULL);
 	if (rc) {
 		pr_err("Failed to get pool VP info CPU %d\n", cpu);
 		return;
@@ -635,7 +640,7 @@ static bool xive_native_provision_pages(void)
 			return false;
 		}
 		kmemleak_ignore(p);
-		opal_xive_donate_page(chip, __pa(p));
+		opal_xive_donate_page(chip, __pa(p)); // TODO: stack_pa?
 	}
 	return true;
 }
@@ -728,7 +733,8 @@ int xive_native_get_vp_info(u32 vp_id, u32 *out_cam_id, u32 *out_chip_id)
 	__be32 vp_chip_id_be;
 	s64 rc;
 
-	rc = opal_xive_get_vp_info(vp_id, NULL, &vp_cam_be, NULL, &vp_chip_id_be);
+	rc = opal_xive_get_vp_info(vp_id, NULL, stack_pa(&vp_cam_be), NULL,
+				   stack_pa(&vp_chip_id_be));
 	if (rc) {
 		vp_err(vp_id, "Failed to get VP info : %lld\n", rc);
 		return -EIO;
@@ -760,8 +766,11 @@ int xive_native_get_queue_info(u32 vp_id, u32 prio,
 	__be64 qflags;
 	s64 rc;
 
-	rc = opal_xive_get_queue_info(vp_id, prio, &qpage, &qsize,
-				      &qeoi_page, &escalate_irq, &qflags);
+	rc = opal_xive_get_queue_info(vp_id, prio, stack_pa(&qpage),
+				      stack_pa(&qsize),
+				      stack_pa(&qeoi_page),
+				      stack_pa(&escalate_irq),
+				      stack_pa(&qflags));
 	if (rc) {
 		vp_err(vp_id, "failed to get queue %d info : %lld\n", prio, rc);
 		return -EIO;
@@ -788,8 +797,8 @@ int xive_native_get_queue_state(u32 vp_id, u32 prio, u32 *qtoggle, u32 *qindex)
 	__be32 opal_qindex;
 	s64 rc;
 
-	rc = opal_xive_get_queue_state(vp_id, prio, &opal_qtoggle,
-				       &opal_qindex);
+	rc = opal_xive_get_queue_state(vp_id, prio, stack_pa(&opal_qtoggle),
+				       stack_pa(&opal_qindex));
 	if (rc) {
 		vp_err(vp_id, "failed to get queue %d state : %lld\n", prio, rc);
 		return -EIO;
@@ -830,7 +839,7 @@ int xive_native_get_vp_state(u32 vp_id, u64 *out_state)
 	__be64 state;
 	s64 rc;
 
-	rc = opal_xive_get_vp_state(vp_id, &state);
+	rc = opal_xive_get_vp_state(vp_id, stack_pa(&state));
 	if (rc) {
 		vp_err(vp_id, "failed to get vp state : %lld\n", rc);
 		return -EIO;
