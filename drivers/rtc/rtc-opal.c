@@ -53,7 +53,7 @@ static int opal_get_rtc_time(struct device *dev, struct rtc_time *tm)
 	__be64 __h_m_s_ms;
 
 	while (rc == OPAL_BUSY || rc == OPAL_BUSY_EVENT) {
-		rc = opal_rtc_read(&__y_m_d, &__h_m_s_ms);
+		rc = opal_rtc_read(ptr_to_opal(&__y_m_d), ptr_to_opal(&__h_m_s_ms));
 		if (rc == OPAL_BUSY_EVENT) {
 			msleep(OPAL_BUSY_DELAY_MS);
 			opal_poll_events(NULL);

@@ -453,7 +453,7 @@ static int __opal_put_chars(uint32_t vtermno, const char *data, int total_len, b
 
 	if (atomic)
 		spin_lock_irqsave(&opal_write_lock, flags);
-	rc = opal_console_write_buffer_space(vtermno, &olen);
+	rc = opal_console_write_buffer_space(vtermno, ptr_to_opal(&olen));
 	if (rc || be64_to_cpu(olen) < total_len) {
 		/* Closed -> drop characters */
 		if (rc)
@@ -465,7 +465,7 @@ static int __opal_put_chars(uint32_t vtermno, const char *data, int total_len, b
 
 	/* Should not get a partial write here because space is available. */
 	olen = cpu_to_be64(total_len);
-	rc = opal_console_write(vtermno, &olen, data);
+	rc = opal_console_write(vtermno, ptr_to_opal(&olen), ptr_to_opal(data));
 	if (rc == OPAL_BUSY || rc == OPAL_BUSY_EVENT) {
 		if (rc == OPAL_BUSY_EVENT)
 			opal_poll_events(NULL);
