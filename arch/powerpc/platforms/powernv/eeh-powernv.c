@@ -564,7 +564,7 @@ static void pnv_eeh_get_phb_diag(struct eeh_pe *pe)
 	struct pnv_phb *phb = pe->phb->private_data;
 	s64 rc;
 
-	rc = opal_pci_get_phb_diag_data2(phb->opal_id, pe->data,
+	rc = opal_pci_get_phb_diag_data2(phb->opal_id, ptr_to_opal(pe->data),
 					 phb->diag_data_size);
 	if (rc != OPAL_SUCCESS)
 		pr_warn("%s: Failure %lld getting PHB#%x diag-data\n",
@@ -581,8 +581,8 @@ static int pnv_eeh_get_phb_state(struct eeh_pe *pe)
 
 	rc = opal_pci_eeh_freeze_status(phb->opal_id,
 					pe->addr,
-					&fstate,
-					&pcierr,
+					ptr_to_opal(&fstate),
+					ptr_to_opal(&pcierr),
 					NULL);
 	if (rc != OPAL_SUCCESS) {
 		pr_warn("%s: Failure %lld getting PHB#%x state\n",
@@ -641,8 +641,8 @@ static int pnv_eeh_get_pe_state(struct eeh_pe *pe)
 	} else {
 		rc = opal_pci_eeh_freeze_status(phb->opal_id,
 						pe->addr,
-						&fstate,
-						&pcierr,
+						ptr_to_opal(&fstate),
+						ptr_to_opal(&pcierr),
 						NULL);
 		if (rc != OPAL_SUCCESS) {
 			pr_warn("%s: Failure %lld getting PHB#%x-PE%x state\n",
@@ -1334,7 +1334,8 @@ static void pnv_eeh_get_and_dump_hub_diag(struct pci_controller *hose)
 		(struct OpalIoP7IOCErrorData*)phb->diag_data;
 	long rc;
 
-	rc = opal_pci_get_hub_diag_data(phb->hub_id, data, sizeof(*data));
+	rc = opal_pci_get_hub_diag_data(phb->hub_id, ptr_to_opal(data),
+					sizeof(*data));
 	if (rc != OPAL_SUCCESS) {
 		pr_warn("%s: Failed to get HUB#%llx diag-data (%ld)\n",
 			__func__, phb->hub_id, rc);
@@ -1479,7 +1480,9 @@ static int pnv_eeh_next_error(struct eeh_pe **pe)
 			continue;
 
 		rc = opal_pci_next_error(phb->opal_id,
-					 &frozen_pe_no, &err_type, &severity);
+					 ptr_to_opal(&frozen_pe_no),
+					 ptr_to_opal(&err_type),
+					 ptr_to_opal(&severity));
 		if (rc != OPAL_SUCCESS) {
 			pr_devel("%s: Invalid return value on "
 				 "PHB#%x (0x%lx) from opal_pci_next_error",
@@ -1558,7 +1561,8 @@ static int pnv_eeh_next_error(struct eeh_pe **pe)
 
 				/* Dump PHB diag-data */
 				rc = opal_pci_get_phb_diag_data2(phb->opal_id,
-					phb->diag_data, phb->diag_data_size);
+								 ptr_to_opal(phb->diag_data),
+								 phb->diag_data_size);
 				if (rc == OPAL_SUCCESS)
 					pnv_pci_dump_phb_diag_data(hose,
 							phb->diag_data);

@@ -63,7 +63,7 @@ again:
 		cond_resched();
 	}
 	last_outstanding_events = 0;
-	if (opal_poll_events(&events) != OPAL_SUCCESS)
+	if (opal_poll_events(ptr_to_opal(&events)) != OPAL_SUCCESS)
 		return;
 	e = be64_to_cpu(events) & opal_event_irqchip.mask;
 	if (e)
@@ -126,7 +126,7 @@ static irqreturn_t opal_interrupt(int irq, void *data)
 {
 	__be64 events;
 
-	opal_handle_interrupt(virq_to_hw(irq), &events);
+	opal_handle_interrupt(virq_to_hw(irq), ptr_to_opal(&events));
 	last_outstanding_events = be64_to_cpu(events);
 	if (opal_have_pending_events())
 		opal_wake_poller();

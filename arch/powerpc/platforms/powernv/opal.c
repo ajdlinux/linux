@@ -431,11 +431,11 @@ int opal_get_chars(uint32_t vtermno, char *buf, int count)
 
 	if (!opal.entry)
 		return -ENODEV;
-	opal_poll_events(&evt);
+	opal_poll_events(ptr_to_opal(&evt));
 	if ((be64_to_cpu(evt) & OPAL_EVENT_CONSOLE_INPUT) == 0)
 		return 0;
 	len = cpu_to_be64(count);
-	rc = opal_console_read(vtermno, &len, buf);
+	rc = opal_console_read(vtermno, ptr_to_opal(&len), ptr_to_opal(buf));
 	if (rc == OPAL_SUCCESS)
 		return be64_to_cpu(len);
 	return 0;
@@ -527,7 +527,7 @@ static s64 __opal_flush_console(uint32_t vtermno)
 		 */
 		WARN_ONCE(1, "opal: OPAL_CONSOLE_FLUSH missing.\n");
 
-		opal_poll_events(&evt);
+		opal_poll_events(ptr_to_opal(&evt));
 		if (!(be64_to_cpu(evt) & OPAL_EVENT_CONSOLE_OUTPUT))
 			return OPAL_SUCCESS;
 		return OPAL_BUSY;
