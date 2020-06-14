@@ -22,6 +22,7 @@
 #include <asm/smp.h>
 #include <asm/runlatch.h>
 #include <asm/dbell.h>
+#include <asm/reg.h>
 
 #include "powernv.h"
 #include "subcore.h"
@@ -508,6 +509,14 @@ static unsigned long power7_offline(void)
 {
 	unsigned long srr1;
 
+#ifdef CONFIG_VMAP_STACK
+	unsigned long ksp_ea;
+
+	ksp_ea = current_stack_pointer;
+	current_stack_pointer = (unsigned long)stack_pa((void *)ksp_ea);
+	// TODO: this could mean renaming stack_pa
+#endif
+
 	mtmsr(MSR_IDLE);
 
 #ifdef CONFIG_KVM_BOOK3S_HV_POSSIBLE
@@ -542,6 +551,9 @@ static unsigned long power7_offline(void)
 		srr1 = idle_kvm_start_guest(srr1);
 #endif
 
+#ifdef CONFIG_VMAP_STACK
+	current_stack_pointer = ksp_ea;
+#endif
 	mtmsr(MSR_KERNEL);
 
 	return srr1;
@@ -551,14 +563,26 @@ static unsigned long power7_offline(void)
 void power7_idle_type(unsigned long type)
 {
 	unsigned long srr1;
+#ifdef CONFIG_VMAP_STACK
+	uintptr_t va_stack_ptr;
+#endif
 
 	if (!prep_irq_for_idle_irqsoff())
 		return;
 
+#ifdef CONFIG_VMAP_STACK
+	va_stack_ptr = current_stack_pointer;
+	if (is_vmalloc_addr((void *)current_stack_pointer))
+		current_stack_pointer = (unsigned long)__va(
+			vmalloc_to_phys((void *)va_stack_ptr));
+#endif
 	mtmsr(MSR_IDLE);
 	__ppc64_runlatch_off();
 	srr1 = power7_idle_insn(type);
 	__ppc64_runlatch_on();
+#ifdef CONFIG_VMAP_STACK
+	current_stack_pointer = va_stack_ptr;
+#endif
 	mtmsr(MSR_KERNEL);
 
 	fini_irq_for_idle_irqsoff();
@@ -615,7 +639,9 @@ static unsigned long power9_idle_stop(unsigned long psscr, bool mmu_on)
 	unsigned long mmcra = 0;
 	struct p9_sprs sprs = {}; /* avoid false used-uninitialised */
 	bool sprs_saved = false;
-
+#ifdef CONFIG_VMAP_STACK
+	uintptr_t va_stack_ptr;
+#endif
 	if (!(psscr & (PSSCR_EC|PSSCR_ESL))) {
 		/* EC=ESL=0 case */
 
@@ -691,6 +717,13 @@ static unsigned long power9_idle_stop(unsigned long psscr, bool mmu_on)
 	sprs.iamr	= mfspr(SPRN_IAMR);
 	sprs.amor	= mfspr(SPRN_AMOR);
 	sprs.uamor	= mfspr(SPRN_UAMOR);
+
+#ifdef CONFIG_VMAP_STACK
+	va_stack_ptr = current_stack_pointer;
+	if (is_vmalloc_addr((void *)current_stack_pointer))
+		current_stack_pointer = (unsigned long)__va(
+			vmalloc_to_phys((void *)va_stack_ptr));
+#endif
 
 	srr1 = isa300_idle_stop_mayloss(psscr);		/* go idle */
 
@@ -802,8 +835,12 @@ core_woken:
 		__slb_restore_bolted_realmode();
 
 out:
-	if (mmu_on)
+	if (mmu_on) {
+#ifdef CONFIG_VMAP_STACK
+		current_stack_pointer = va_stack_ptr;
+#endif
 		mtmsr(MSR_KERNEL);
+	}
 
 	return srr1;
 }
