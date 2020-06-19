@@ -509,6 +509,14 @@ static unsigned long power7_offline(void)
 {
 	unsigned long srr1;
 
+#ifdef CONFIG_VMAP_STACK
+	uintptr_t va_stack_ptr;
+
+	va_stack_ptr = current_stack_pointer;
+	if (is_vmalloc_addr((void *)current_stack_pointer))
+		current_stack_pointer = __va(vmalloc_to_phys((void *)va_stack_ptr));
+#endif
+
 	mtmsr(MSR_IDLE);
 
 #ifdef CONFIG_KVM_BOOK3S_HV_POSSIBLE
@@ -543,6 +551,9 @@ static unsigned long power7_offline(void)
 		srr1 = idle_kvm_start_guest(srr1);
 #endif
 
+#ifdef CONFIG_VMAP_STACK
+	current_stack_pointer = va_stack_ptr;
+#endif
 	mtmsr(MSR_KERNEL);
 
 	return srr1;
