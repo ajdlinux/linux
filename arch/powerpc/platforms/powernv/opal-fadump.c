@@ -598,7 +598,7 @@ static void opal_fadump_trigger(struct fadump_crash_info_header *fdh,
 	 */
 	fdh->crashing_cpu = (u32)mfspr(SPRN_PIR);
 
-	rc = opal_cec_reboot2(OPAL_REBOOT_MPIPL, msg);
+	rc = opal_cec_reboot2(OPAL_REBOOT_MPIPL, ptr_to_opal(msg));
 	if (rc == OPAL_UNSUPPORTED) {
 		pr_emerg("Reboot type %d not supported.\n",
 			 OPAL_REBOOT_MPIPL);

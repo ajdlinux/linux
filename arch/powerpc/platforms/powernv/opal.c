@@ -647,7 +647,7 @@ void __noreturn pnv_platform_error_reboot(struct pt_regs *regs, const char *msg)
 	 * Don't bother to shut things down because this will
 	 * xstop the system.
 	 */
-	if (opal_cec_reboot2(OPAL_REBOOT_PLATFORM_ERROR, msg)
+	if (opal_cec_reboot2(OPAL_REBOOT_PLATFORM_ERROR, ptr_to_opal(msg))
 						== OPAL_UNSUPPORTED) {
 		pr_emerg("Reboot type %d not supported for %s\n",
 				OPAL_REBOOT_PLATFORM_ERROR, msg);
