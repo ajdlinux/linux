@@ -720,7 +720,7 @@ int opal_hmi_exception_early2(struct pt_regs *regs)
 	 * Check 64-bit flag mask to find out if an event was generated,
 	 * and whether TB is still valid or not etc.
 	 */
-	rc = opal_handle_hmi2(&out_flags);
+	rc = opal_handle_hmi2(ptr_to_opal(&out_flags));
 	if (rc != OPAL_SUCCESS)
 		return 0;
 
