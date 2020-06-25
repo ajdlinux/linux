@@ -12,6 +12,7 @@
 
 #ifndef __ASSEMBLY__
 
+#include <linux/mm.h>
 #include <linux/notifier.h>
 
 /* We calculate number of sg entries based on PAGE_SIZE */
