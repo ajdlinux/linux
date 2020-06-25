@@ -514,7 +514,8 @@ static unsigned long power7_offline(void)
 
 	va_stack_ptr = current_stack_pointer;
 	if (is_vmalloc_addr((void *)current_stack_pointer))
-		current_stack_pointer = __va(vmalloc_to_phys((void *)va_stack_ptr));
+		current_stack_pointer = (unsigned long)__va(
+			vmalloc_to_phys((void *)va_stack_ptr));
 #endif
 
 	mtmsr(MSR_IDLE);
@@ -721,7 +722,8 @@ static unsigned long power9_idle_stop(unsigned long psscr, bool mmu_on)
 #ifdef CONFIG_VMAP_STACK
 	va_stack_ptr = current_stack_pointer;
 	if (is_vmalloc_addr((void *)current_stack_pointer))
-		current_stack_pointer = __va(vmalloc_to_phys((void *)va_stack_ptr));
+		current_stack_pointer = (unsigned long)__va(
+			vmalloc_to_phys((void *)va_stack_ptr));
 #endif
 
 	srr1 = isa300_idle_stop_mayloss(psscr);		/* go idle */
