@@ -117,7 +117,7 @@ static int ics_opal_set_affinity(struct irq_data *d,
 	if (hw_irq == XICS_IPI || hw_irq == XICS_IRQ_SPURIOUS)
 		return -1;
 
-	rc = opal_get_xive(hw_irq, &oserver, &priority);
+	rc = opal_get_xive(hw_irq, ptr_to_opal(&oserver), ptr_to_opal(&priority));
 	if (rc != OPAL_SUCCESS) {
 		pr_err("%s: opal_get_xive(irq=%d [hw 0x%x]) error %lld\n",
 		       __func__, d->irq, hw_irq, rc);
@@ -185,7 +185,7 @@ static int ics_opal_map(struct ics *ics, unsigned int virq)
 		return -EINVAL;
 
 	/* Check if HAL knows about this interrupt */
-	rc = opal_get_xive(hw_irq, &server, &priority);
+	rc = opal_get_xive(hw_irq, ptr_to_opal(&server), ptr_to_opal(&priority));
 	if (rc != OPAL_SUCCESS)
 		return -ENXIO;
 
@@ -202,7 +202,7 @@ static void ics_opal_mask_unknown(struct ics *ics, unsigned long vec)
 	int8_t priority;
 
 	/* Check if HAL knows about this interrupt */
-	rc = opal_get_xive(vec, &server, &priority);
+	rc = opal_get_xive(vec, ptr_to_opal(&server), ptr_to_opal(&priority));
 	if (rc != OPAL_SUCCESS)
 		return;
 
@@ -216,7 +216,7 @@ static long ics_opal_get_server(struct ics *ics, unsigned long vec)
 	int8_t priority;
 
 	/* Check if HAL knows about this interrupt */
-	rc = opal_get_xive(vec, &server, &priority);
+	rc = opal_get_xive(vec, ptr_to_opal(&server), ptr_to_opal(&priority));
 	if (rc != OPAL_SUCCESS)
 		return -1;
 	return ics_opal_unmangle_server(be16_to_cpu(server));
