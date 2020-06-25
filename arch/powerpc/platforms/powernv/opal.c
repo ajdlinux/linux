@@ -357,7 +357,7 @@ static void opal_handle_message(void)
 	s64 ret;
 	u32 type;
 
-	ret = opal_get_msg(ptr_to_opal(opal_msg), opal_msg_size);
+	ret = opal_get_msg((uint64_t)ptr_to_opal(opal_msg), opal_msg_size);
 	/* No opal message pending. */
 	if (ret == OPAL_RESOURCE)
 		return;
