@@ -284,7 +284,7 @@ static long opal_prd_ioctl(struct file *file, unsigned int cmd,
 			return -EFAULT;
 
 		scom.rc = opal_xscom_read(scom.chip, scom.addr,
-				(__be64 *)&scom.data);
+					  (__be64 *)ptr_to_opal(&scom.data));
 		scom.data = be64_to_cpu(scom.data);
 		pr_devel("ioctl SCOM_READ: chip %llx addr %016llx data %016llx rc %lld\n",
 				scom.chip, scom.addr, scom.data, scom.rc);
