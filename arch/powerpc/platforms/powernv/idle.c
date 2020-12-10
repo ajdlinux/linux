@@ -564,14 +564,26 @@ static unsigned long power7_offline(void)
 void power7_idle_type(unsigned long type)
 {
 	unsigned long srr1;
+#ifdef CONFIG_VMAP_STACK
+	uintptr_t va_stack_ptr;
+#endif
 
 	if (!prep_irq_for_idle_irqsoff())
 		return;
 
+#ifdef CONFIG_VMAP_STACK
+	va_stack_ptr = current_stack_pointer;
+	if (is_vmalloc_addr((void *)current_stack_pointer))
+		current_stack_pointer = (unsigned long)__va(
+			vmalloc_to_phys((void *)va_stack_ptr));
+#endif
 	mtmsr(MSR_IDLE);
 	__ppc64_runlatch_off();
 	srr1 = power7_idle_insn(type);
 	__ppc64_runlatch_on();
+#ifdef CONFIG_VMAP_STACK
+	current_stack_pointer = va_stack_ptr;
+#endif
 	mtmsr(MSR_KERNEL);
 
 	fini_irq_for_idle_irqsoff();
