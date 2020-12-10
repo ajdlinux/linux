@@ -1186,7 +1186,6 @@ struct task_struct *__switch_to(struct task_struct *prev,
 #ifdef CONFIG_PPC_BOOK3S_64
 	struct ppc64_tlb_batch *batch;
 #endif
-
 	new_thread = &new->thread;
 	old_thread = &current->thread;
 
@@ -1595,7 +1594,11 @@ static void setup_ksp_vsid(struct task_struct *p, unsigned long sp)
 {
 #ifdef CONFIG_PPC_BOOK3S_64
 	unsigned long sp_vsid;
+#ifdef CONFIG_VMAP_STACK
+	unsigned long llp = mmu_psize_defs[mmu_vmalloc_psize].sllp;
+#else /* CONFIG_VMAP_STACK */
 	unsigned long llp = mmu_psize_defs[mmu_linear_psize].sllp;
+#endif /* CONFIG_VMAP_STACK */
 
 	if (radix_enabled())
 		return;
