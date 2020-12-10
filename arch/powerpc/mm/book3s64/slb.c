@@ -606,6 +606,11 @@ void slb_initialize(void)
 	 * get_paca()->kstack hasn't been initialized yet.
 	 * For secondary cpus, we need to bolt the kernel stack entry now.
 	 */
+
+	#ifdef CONFIG_VMAP_STACK
+	// TODO clean up
+	lflags = SLB_VSID_KERNEL | vmalloc_llp;
+	#endif
 	slb_shadow_clear(KSTACK_INDEX);
 	if (raw_smp_processor_id() != boot_cpuid &&
 	    (get_paca()->kstack & slb_esid_mask(mmu_kernel_ssize)) > PAGE_OFFSET)
