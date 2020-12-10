@@ -245,7 +245,9 @@ static irqreturn_t elog_event(int irq, void *data)
 	char name[2+16+1];
 	struct kobject *kobj;
 
-	rc = opal_get_elog_size(&id, &size, &type);
+	rc = opal_get_elog_size(ptr_to_opal(&id),
+				ptr_to_opal(&size),
+				ptr_to_opal(&type));
 	if (rc != OPAL_SUCCESS) {
 		pr_err("ELOG: OPAL log info read failed\n");
 		return IRQ_HANDLED;
