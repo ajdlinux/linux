@@ -13,12 +13,23 @@
 #ifndef __ASSEMBLY__
 
 #include <linux/notifier.h>
+#include <linux/mm.h>
 
 /* We calculate number of sg entries based on PAGE_SIZE */
 #define SG_ENTRIES_PER_NODE ((PAGE_SIZE - 16) / sizeof(struct opal_sg_entry))
 
 /* Default time to sleep or delay between OPAL_BUSY/OPAL_BUSY_EVENT loops */
 #define OPAL_BUSY_DELAY_MS	10
+
+/*
+ * Used to support VMAP_STACK
+ *
+ * TODO: Move this somewhere more generic
+ */
+#define stack_pa(ptr) (is_vmalloc_addr((void *)(ptr)) ?			\
+		       (void *)vmalloc_to_phys((void *)(ptr)) :		\
+		       (void *)__pa((void *)(ptr)))
+
 
 /* /sys/firmware/opal */
 extern struct kobject *opal_kobj;

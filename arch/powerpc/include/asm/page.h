@@ -327,13 +327,6 @@ static inline unsigned long kaslr_offset(void)
 	return kernstart_virt_addr - KERNELBASE;
 }
 
-/*
- * Used to support VMAP_STACK
- */
-#define stack_pa(ptr) (is_vmalloc_addr((void *)(ptr)) ?			\
-		       (void *)vmalloc_to_phys((void *)(ptr)) :		\
-		       (void *)__pa((void *)(ptr)))
-
 #include <asm-generic/memory_model.h>
 #endif /* __ASSEMBLY__ */
 #include <asm/slice.h>
