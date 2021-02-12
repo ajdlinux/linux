@@ -935,6 +935,9 @@ static unsigned long power10_idle_stop(unsigned long psscr, bool mmu_on)
 	unsigned long pls;
 //	struct p10_sprs sprs = {}; /* avoid false used-uninitialised */
 	bool sprs_saved = false;
+#ifdef CONFIG_VMAP_STACK
+	unsigned long ksp_ea;
+#endif
 
 	if (!(psscr & (PSSCR_EC|PSSCR_ESL))) {
 		/* EC=ESL=0 case */
@@ -967,6 +970,10 @@ static unsigned long power10_idle_stop(unsigned long psscr, bool mmu_on)
 		atomic_start_thread_idle();
 	}
 
+#ifdef CONFIG_VMAP_STACK
+	ksp_ea = current_stack_pointer;
+	current_stack_pointer = (unsigned long)stack_pa(ksp_ea);
+#endif
 	srr1 = isa300_idle_stop_mayloss(psscr);		/* go idle */
 
 	psscr = mfspr(SPRN_PSSCR);
@@ -1021,8 +1028,12 @@ core_woken:
 		__slb_restore_bolted_realmode();
 
 out:
-	if (mmu_on)
+	if (mmu_on) {
+#ifdef CONFIG_VMAP_STACK
+		current_stack_pointer = ksp_ea; // TODO: what if we arrive here from that earlier goto out?
+#endif
 		mtmsr(MSR_KERNEL);
+	}
 
 	return srr1;
 }
