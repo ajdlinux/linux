@@ -512,7 +512,7 @@ static unsigned long power7_offline(void)
 
 #ifdef CONFIG_VMAP_STACK
 	unsigned long ksp_ea = current_stack_pointer;
-	current_stack_pointer = (unsigned long)stack_pa((void *)ksp_ea);
+	current_stack_pointer = (unsigned long)stack_pa(ksp_ea);
 #endif
 
 	mtmsr(MSR_IDLE);
@@ -570,7 +570,7 @@ void power7_idle_type(unsigned long type)
 
 #ifdef CONFIG_VMAP_STACK
 	ksp_ea = current_stack_pointer;
-	current_stack_pointer = (unsigned long)stack_pa((void *)ksp_ea);
+	current_stack_pointer = (unsigned long)stack_pa(ksp_ea);
 #endif
 	mtmsr(MSR_IDLE);
 	__ppc64_runlatch_off();
@@ -717,7 +717,7 @@ static unsigned long power9_idle_stop(unsigned long psscr, bool mmu_on)
 
 #ifdef CONFIG_VMAP_STACK
 	ksp_ea = current_stack_pointer;
-	current_stack_pointer = (unsigned long)stack_pa((void *)ksp_ea);
+	current_stack_pointer = (unsigned long)stack_pa(ksp_ea);
 #endif
 	srr1 = isa300_idle_stop_mayloss(psscr);		/* go idle */
 
