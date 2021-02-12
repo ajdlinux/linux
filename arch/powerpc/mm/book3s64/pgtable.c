@@ -584,6 +584,53 @@ int pmd_move_must_withdraw(struct spinlock *new_pmd_ptl,
 }
 #endif
 
+// Call a function with one argument in real mode, using the emergency stack.
+//
+// Executing C code in real mode in general book3s64 code needs to be done via
+// this function to ensure that the stack is accessible in real mode.
+//
+// On hash guest LPARs, the real mode area may only cover a small first part of
+// real memory.
+//
+// When CONFIG_VMAP_STACK is enabled, the general stack is inaccessible in real
+// mode as it's vmalloced.
+//
+// fn must be NOKPROBES, must not access vmalloc or anything outside the RMA,
+// probably shouldn't enable the MMU or interrupts, etc, and be very careful
+// about calling other generic kernel or powerpc functions.
+int call_realmode(int (*fn)(void *arg), void *arg)
+{
+	unsigned long flags;
+	void *cursp, *emsp;
+	int ret;
+
+	if (WARN_ON_ONCE(!(mfmsr() & MSR_DR)))
+		return -EINVAL;
+	if (WARN_ON_ONCE(!(mfmsr() & MSR_IR)))
+		return -EINVAL;
+
+	// It's probably okay to go to real mode and call directly in case we
+	// are already on the emergency stack, so allow it. But we may want to
+	// prevent callers from doing this in future though, so warn.
+	cursp = (void *)(current_stack_pointer & ~(THREAD_SIZE - 1));
+	emsp = (void *)(local_paca->emergency_sp - THREAD_SIZE);
+	WARN_ON_ONCE(cursp == emsp);
+
+	check_stack_overflow(current_stack_pointer);
+
+	local_irq_save(flags);
+	hard_irq_disable();
+
+	if (cursp == emsp)
+		ret = fn(arg);
+	else
+		ret = __call_realmode(fn, arg);
+
+	local_irq_restore(flags);
+
+	return ret;
+}
+
 /*
  * Does the CPU support tlbie?
  */

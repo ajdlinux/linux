@@ -185,20 +185,6 @@ u64 arch_irq_stat_cpu(unsigned int cpu)
 	return sum;
 }
 
-static inline void check_stack_overflow(unsigned long sp)
-{
-	if (!IS_ENABLED(CONFIG_DEBUG_STACKOVERFLOW))
-		return;
-
-	sp &= THREAD_SIZE - 1;
-
-	/* check for stack overflow: is there less than 1/4th free? */
-	if (unlikely(sp < THREAD_SIZE / 4)) {
-		pr_err("do_IRQ: stack overflow: %ld\n", sp);
-		dump_stack();
-	}
-}
-
 #ifdef CONFIG_SOFTIRQ_ON_OWN_STACK
 static __always_inline void call_do_softirq(const void *sp)
 {

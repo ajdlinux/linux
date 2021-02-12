@@ -229,6 +229,20 @@ static inline int arch_within_stack_frames(const void * const stack,
 	return BAD_STACK;
 }
 
+static inline void check_stack_overflow(unsigned long sp)
+{
+	if (!IS_ENABLED(CONFIG_DEBUG_STACKOVERFLOW))
+		return;
+
+	sp &= THREAD_SIZE - 1;
+
+	/* check for stack overflow: is there less than 1/4th free? */
+	if (unlikely(sp < THREAD_SIZE / 4)) {
+		pr_err("do_IRQ: stack overflow: %ld\n", sp);
+		dump_stack();
+	}
+}
+
 #ifdef CONFIG_PPC32
 extern void *emergency_ctx[];
 #endif

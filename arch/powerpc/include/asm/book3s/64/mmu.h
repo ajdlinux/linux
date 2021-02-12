@@ -288,5 +288,7 @@ static inline unsigned long get_user_vsid(mm_context_t *ctx,
 }
 #endif
 
+int call_realmode(int (*fn)(void *arg), void *arg);
+
 #endif /* __ASSEMBLY__ */
 #endif /* _ASM_POWERPC_BOOK3S_64_MMU_H_ */

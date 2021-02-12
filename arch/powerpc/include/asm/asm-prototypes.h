@@ -43,6 +43,7 @@ extern s64 __ashldi3(s64, int);
 extern s64 __ashrdi3(s64, int);
 extern int __cmpdi2(s64, s64);
 extern int __ucmpdi2(u64, u64);
+int __call_realmode(int (*fn)(void *arg), void *arg);
 
 /* tracing */
 void _mcount(void);
