@@ -969,6 +969,7 @@ static unsigned long power10_idle_stop(unsigned long psscr, bool mmu_on)
 	}
 	ksp_ea = current_stack_pointer; // does this need to be done here
 	current_stack_pointer = (unsigned long)stack_pa(ksp_ea);
+	mtmsr(MSR_IDLE);
 	srr1 = isa300_idle_stop_mayloss(psscr);		/* go idle */
 
 	psscr = mfspr(SPRN_PSSCR);
