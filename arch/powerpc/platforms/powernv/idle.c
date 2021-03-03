@@ -718,6 +718,7 @@ static unsigned long power9_idle_stop(unsigned long psscr, bool mmu_on)
 #ifdef CONFIG_VMAP_STACK
 	ksp_ea = current_stack_pointer;
 	current_stack_pointer = (unsigned long)stack_pa(ksp_ea);
+	mtmsr(MSR_IDLE);
 #endif
 	srr1 = isa300_idle_stop_mayloss(psscr);		/* go idle */
 
