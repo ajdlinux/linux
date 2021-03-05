@@ -832,6 +832,7 @@ core_woken:
 out:
 	if (mmu_on) {
 #ifdef CONFIG_VMAP_STACK
+		// TODO what about noloss case
 		current_stack_pointer = ksp_ea;
 #endif
 		mtmsr(MSR_KERNEL);
