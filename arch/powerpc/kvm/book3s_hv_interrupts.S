@@ -104,7 +104,7 @@ END_FTR_SECTION_IFSET(CPU_FTR_ARCH_300)
 	ld	r4, _CCR(r1)
 	mtcr	r4
 
-	addi    r1, r1, SWITCH_FRAME_SIZE // oof this seems like it could be a problem?? maybe need to fix up ksp_ea before we restore??
+	addi    r1, r1, SWITCH_FRAME_SIZE
 	ld	r0, PPC_LR_STKOFF(r1)
 	mtlr	r0
 	blr

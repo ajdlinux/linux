@@ -3137,9 +3137,6 @@ static noinline void kvmppc_run_core(struct kvmppc_vcore *vc)
 	int controlled_threads;
 	int trap;
 	bool is_power8;
-#ifdef CONFIG_VMAP_STACK
-	unsigned long ksp_ea;
-#endif
 
 	/*
 	 * Remove from the list any threads that have a signal pending
@@ -3373,16 +3370,8 @@ static noinline void kvmppc_run_core(struct kvmppc_vcore *vc)
 	 */
 	trace_hardirqs_on();
 
-#ifdef CONFIG_VMAP_STACK
-	ksp_ea = current_stack_pointer;
-	current_stack_pointer = (unsigned long)stack_pa(ksp_ea);
-#endif
-
 	trap = __kvmppc_vcore_entry();
 
-#ifdef CONFIG_VMAP_STACK
-	current_stack_pointer = ksp_ea;
-#endif
 	trace_hardirqs_off();
 
 	this_cpu_enable_ftrace();
