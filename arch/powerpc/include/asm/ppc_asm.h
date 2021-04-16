@@ -477,6 +477,18 @@ END_FTR_SECTION_NESTED(CPU_FTR_CELL_TB_BUG, CPU_FTR_CELL_TB_BUG, 96)
 #define tovirt(rd, rs)	addis	rd, rs, PAGE_OFFSET@h
 #endif
 
+// stack_pa() asm macro edition
+/*
+#define stack_pa(ptr) (is_vmalloc_addr((void *)(ptr)) ?			\
+		       (void *)vmalloc_to_phys((void *)(ptr)) :		\
+		       (void *)__pa((void *)(ptr)))
+
+issues: we need to call a function, we need to store the existing stack value somewhere (PACA?), we need to restore afterwards
+
+what's actually wrong with swapping the stack earlier in C?
+
+*/
+
 #ifdef CONFIG_PPC_BOOK3S_64
 #define MTMSRD(r)	mtmsrd	r
 #define MTMSR_EERI(reg)	mtmsrd	reg,1
