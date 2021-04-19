@@ -3381,6 +3381,7 @@ static noinline void kvmppc_run_core(struct kvmppc_vcore *vc)
 	trap = __kvmppc_vcore_entry();
 
 #ifdef CONFIG_VMAP_STACK
+	ksp_ea += SWITCH_FRAME_SIZE;
 	current_stack_pointer = ksp_ea;
 #endif
 	trace_hardirqs_off();
