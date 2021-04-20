@@ -76,7 +76,6 @@
 #include <asm/kvm_book3s_uvmem.h>
 #include <asm/ultravisor.h>
 #include <asm/dtl.h>
-#include <asm/asm-offsets.h>
 
 #include "book3s.h"
 
@@ -3382,7 +3381,7 @@ static noinline void kvmppc_run_core(struct kvmppc_vcore *vc)
 	trap = __kvmppc_vcore_entry();
 
 #ifdef CONFIG_VMAP_STACK
-	ksp_ea += SWITCH_FRAME_SIZE;
+	ksp_ea += 496; //SWITCH_FRAME_SIZE;
 	current_stack_pointer = ksp_ea;
 #endif
 	trace_hardirqs_off();
