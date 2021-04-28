@@ -3382,6 +3382,7 @@ static noinline void kvmppc_run_core(struct kvmppc_vcore *vc)
 	trap = __kvmppc_vcore_entry();
 
 #ifdef CONFIG_VMAP_STACK
+	// Ugh, this doesn't come back in real mode, so we can't actually retrieve ksp_ea...
 	current_stack_pointer = ksp_ea;
 #endif
 	trace_hardirqs_off();
