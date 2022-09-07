@@ -14,6 +14,8 @@
 
 #ifdef __ASSEMBLY__
 
+#include <asm/asm-offsets.h>
+
 #define SZL			(BITS_PER_LONG/8)
 
 /*
@@ -256,7 +258,7 @@ n:
 #define FUNC_START(name)	_GLOBAL(name)
 #define FUNC_END(name)
 
-/* 
+/*
  * LOAD_REG_IMMEDIATE(rn, expr)
  *   Loads the value of the constant expression 'expr' into register 'rn'
  *   using immediate instructions only.  Use this when it's important not
@@ -790,6 +792,23 @@ END_FTR_SECTION_NESTED(CPU_FTR_CELL_TB_BUG, CPU_FTR_CELL_TB_BUG, 96)
 191:
 
 #endif /* !CONFIG_PPC_BOOK3E_64 */
+
+#if defined(CONFIG_VMAP_STACK) && defined(CONFIG_PPC_BOOK3S_64)
+// Switch the current stack pointer in r1 between a linear map address and a
+// vmalloc address. Used when we need to go in and out of real mode with
+// CONFIG_VMAP_STACK enabled.
+//
+// tmp: scratch register that can be clobbered
+
+#define SWAP_STACK_LINEAR(tmp)			\
+	ld	tmp, PACAKSTACK_LINEAR_BASE(r13);	\
+	andi.	r1, r1, THREAD_SIZE - 1;		\
+	or	r1, r1, tmp;
+#define SWAP_STACK_VMALLOC(tmp)			\
+	ld	tmp, PACAKSTACK_VMALLOC_BASE(r13);	\
+	andi.	r1, r1, THREAD_SIZE - 1;		\
+	or	r1, r1, tmp;
+#endif /* CONFIG_VMAP_STACK && CONFIG_PPC_BOOK3S_64 */
 
 #endif /*  __ASSEMBLY__ */
 
