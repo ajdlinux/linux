@@ -859,7 +859,7 @@ start_secondary_prolog:
  * from cede in cpu offline.
  */
 _GLOBAL(start_secondary_resume)
-	ld	r1,PACAKSAVE(r13)	/* Reload kernel stack pointer */
+	ld	r1,PACAKSAVE(r13)	/* Reload kernel stack pointer */  // XXX: do we need to care about PACAKSTACK_LINEAR_BASE yet?
 	li	r3,0
 	std	r3,0(r1)		/* Zero the stack frame pointer	*/
 	bl	start_secondary
@@ -985,7 +985,7 @@ start_here_multiplatform:
 
 start_here_common:
 	/* relocation is on at this point */
-	std	r1,PACAKSAVE(r13)
+	std	r1,PACAKSAVE(r13) // XXX: do we need to care about PACAKSTACK_LINEAR_BASE yet?
 
 	/* Load the TOC (virtual address) */
 	LOAD_PACA_TOC()
