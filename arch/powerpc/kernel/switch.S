@@ -185,6 +185,14 @@ END_MMU_FTR_SECTION_IFCLR(MMU_FTR_TYPE_RADIX)
 	 * active on the new CPU, will order those stores.
 	 */
 	mr	r1,r8		/* start using new stack pointer */
+
+#if defined(CONFIG_VMAP_STACK) && defined(CONFIG_PPC_BOOK3S_64)
+	ld	r8,KSP_LINEAR_BASE(r4)
+	std	r8,PACAKSTACK_LINEAR_BASE(r13)
+	ld	r8,KSP_VMALLOC_BASE(r4)
+	std	r8,PACAKSTACK_VMALLOC_BASE(r13)
+#endif /* CONFIG_VMAP_STACK && CONFIG_PPC_BOOK3S_64 */
+
 .endm
 
 /*
