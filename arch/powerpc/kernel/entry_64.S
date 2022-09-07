@@ -253,6 +253,13 @@ END_FTR_SECTION_IFCLR(CPU_FTR_ARCH_207S)
 	mr	r1,r8		/* start using new stack pointer */
 	std	r7,PACAKSAVE(r13)
 
+#if defined(CONFIG_VMAP_STACK) && defined(CONFIG_PPC_BOOK3S_64)
+	ld	r8,KSP_LINEAR_BASE(r4)
+	std	r8,PACAKSTACK_LINEAR_BASE(r13)
+	ld	r8,KSP_VMALLOC_BASE(r4)
+	std	r8,PACAKSTACK_VMALLOC_BASE(r13)
+#endif /* CONFIG_VMAP_STACK && CONFIG_PPC_BOOK3S_64 */
+
 	ld	r6,_CCR(r1)
 	mtcrf	0xFF,r6
 
