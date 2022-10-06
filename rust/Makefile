@@ -390,6 +390,7 @@ BINDGEN_TARGET_x86	:= x86_64-linux-gnu
 BINDGEN_TARGET_arm64	:= aarch64-linux-gnu
 BINDGEN_TARGET_arm	:= arm-linux-gnueabi
 BINDGEN_TARGET_loongarch	:= loongarch64-linux-gnusf
+BINDGEN_TARGET_powerpc	:= powerpc64le-linux-gnu
 BINDGEN_TARGET_um	:= $(BINDGEN_TARGET_$(SUBARCH))
 BINDGEN_TARGET		:= $(BINDGEN_TARGET_$(SRCARCH))
 
@@ -631,7 +632,7 @@ $(obj)/core.o: private rustc_target_flags = $(core-flags)
 $(obj)/core.o: $(RUST_LIB_SRC)/core/src/lib.rs \
     $(wildcard $(objtree)/include/config/RUSTC_VERSION_TEXT) FORCE
 	+$(call if_changed_rule,rustc_library)
-ifneq ($(or $(CONFIG_X86_64),$(CONFIG_X86_32)),)
+ifneq ($(or $(CONFIG_X86_64),$(CONFIG_X86_32),$(CONFIG_PPC)),)
 $(obj)/core.o: scripts/target.json
 endif
 KCOV_INSTRUMENT_core.o := n

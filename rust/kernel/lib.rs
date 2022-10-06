@@ -42,6 +42,8 @@
 //
 // To be determined.
 #![feature(used_with_arg)]
+// XXX: PowerPC
+#![feature(asm_experimental_arch)]
 //
 // `feature(derive_coerce_pointee)` is expected to become stable. Before Rust
 // 1.84.0, it did not exist, so enable the predecessor features.

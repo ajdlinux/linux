@@ -16,7 +16,7 @@ hostprogs-always-$(CONFIG_TRACEPOINTS)			+= tracepoint-update
 sorttable-objs := sorttable.o elf-parse.o
 tracepoint-update-objs := tracepoint-update.o elf-parse.o
 
-ifneq ($(or $(CONFIG_X86_64),$(CONFIG_X86_32)),)
+ifneq ($(or $(CONFIG_X86_64),$(CONFIG_X86_32),$(CONFIG_PPC)),)
 always-$(CONFIG_RUST)					+= target.json
 filechk_rust_target = $< < include/config/auto.conf
 

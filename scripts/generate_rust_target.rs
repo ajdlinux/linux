@@ -256,6 +256,19 @@ fn main() {
         }
     } else if cfg.has("LOONGARCH") {
         panic!("loongarch uses the builtin rustc loongarch64-unknown-none-softfloat target");
+    } else if cfg.has("PPC") {
+        ts.push("arch", "powerpc64");
+        ts.push(
+            "data-layout",
+            "e-m:e-Fn32-i64:64-i128:128-n32:64-S128-v256:256:256-v512:512:512",
+        );
+        ts.push("features", "-altivec,-vsx,-mma,-spe");
+        ts.push("llvm-target", "powerpc64le-linux-gnu");
+        if cfg.rustc_version_atleast(1, 91, 0) {
+            ts.push("target-pointer-width", 64);
+        } else {
+            ts.push("target-pointer-width", "64");
+        }
     } else {
         panic!("Unsupported architecture");
     }
