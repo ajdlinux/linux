@@ -491,7 +491,7 @@ DEFINE_FIXED_SYMBOL(\name\()_common_real, text)
 3:	mr	r10,r1			/* Save r1			*/
 	subi	r1,r1,INT_FRAME_SIZE	/* alloc frame on kernel stack	*/
 	beq-	100f
-	ld	r1,PACAKSAVE(r13)	/* kernel stack to use		*/
+	ld	r1,PACAKSAVE(r13)	/* kernel stack to use		*/ /// XXX: do we need to use linear map here?
 100:	tdgei	r1,-INT_FRAME_SIZE	/* trap if r1 is in userspace	*/
 	EMIT_BUG_ENTRY 100b,__FILE__,__LINE__,0
 	.endif
