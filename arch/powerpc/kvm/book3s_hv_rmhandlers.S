@@ -126,9 +126,9 @@ END_FTR_SECTION_IFCLR(CPU_FTR_ARCH_207S)
 	 * code here.
 	 */
 
-#ifdef CONFIG_VMAP_STACK
-	SWAP_STACK_LINEAR(r6)
-#endif /* CONFIG_VMAP_STACK */
+//#ifdef CONFIG_VMAP_STACK
+//	SWAP_STACK_LINEAR(r6)
+//#endif /* CONFIG_VMAP_STACK */
 
 	addi	r1, r1, 112
 	ld	r8, PPC_LR_STKOFF(r1)
@@ -523,6 +523,11 @@ kvmppc_hv_entry:
 	 * all other volatile GPRS = free
 	 * Does not preserve non-volatile GPRs or CR fields
 	 */
+
+#ifdef CONFIG_VMAP_STACK
+	SWAP_STACK_LINEAR(r0)
+#endif /* CONFIG_VMAP_STACK */
+
 	mflr	r0
 	std	r0, PPC_LR_STKOFF(r1)
 	stdu	r1, -SFS(r1)
@@ -1033,7 +1038,7 @@ BEGIN_FTR_SECTION
 END_FTR_SECTION_IFSET(CPU_FTR_HAS_PPR)
 
 	/* Restore R1/R2 so we can handle faults */
-	ld	r1, HSTATE_HOST_R1(r13)
+	ld	r1, HSTATE_HOST_R1(r13) // XXXXXXXXXXXXXX - are we still in guest MMU state?
 	LOAD_PACA_TOC()
 
 	mfspr	r10, SPRN_SRR0
