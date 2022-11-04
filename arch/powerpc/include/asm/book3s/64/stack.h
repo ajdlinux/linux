@@ -6,9 +6,7 @@
 #ifndef _ASM_POWERPC_BOOK3S_64_STACK_H
 #define _ASM_POWERPC_BOOK3S_64_STACK_H
 
-#include <linux/mm.h>
-#include <asm/paca.h>
-#include <asm/reg.h>
+#include <asm/thread_info.h>
 
 #if defined(CONFIG_VMAP_STACK) && defined(CONFIG_PPC_BOOK3S_64)
 
@@ -29,6 +27,10 @@
 	or	r1, r1, tmp;
 
 #else // __ASSEMBLY__
+
+#include <asm/paca.h>
+#include <asm/reg.h>
+#include <linux/mm.h>
 
 #define stack_pa(ptr) (is_vmalloc_addr((ptr)) ? (void *)vmalloc_to_phys((void *)(ptr)) : (void *)__pa((ptr)))
 
