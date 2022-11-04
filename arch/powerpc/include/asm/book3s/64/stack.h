@@ -30,13 +30,7 @@
 
 #else // __ASSEMBLY__
 
-static __always_inline void *stack_pa(void *ptr)
-{
-	if (is_vmalloc_addr(ptr) && ((u64)ptr & ~(THREAD_SIZE - 1)) == get_paca()->kstack_vmalloc_base)
-		return (void *)(get_paca()->kstack_linear_base | ((u64)ptr & (THREAD_SIZE - 1)));
-	else
-		return ptr;
-}
+#define stack_pa(ptr) (is_vmalloc_addr((ptr)) ? (void *)vmalloc_to_phys((void *)(ptr)) : (void *)__pa((ptr)))
 
 static __always_inline void swap_stack_linear(void)
 {
