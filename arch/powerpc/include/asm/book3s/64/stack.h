@@ -6,6 +6,7 @@
 #ifndef _ASM_POWERPC_BOOK3S_64_STACK_H
 #define _ASM_POWERPC_BOOK3S_64_STACK_H
 
+#include <linux/mm.h>
 #include <asm/paca.h>
 #include <asm/reg.h>
 
@@ -31,7 +32,7 @@
 
 static __always_inline void *stack_pa(void *ptr)
 {
-	if (((u64)ptr & ~(THREAD_SIZE - 1)) == get_paca()->kstack_vmalloc_base)
+	if (is_vmalloc_addr(ptr) && ((u64)ptr & ~(THREAD_SIZE - 1)) == get_paca()->kstack_vmalloc_base)
 		return (void *)(get_paca()->kstack_linear_base | ((u64)ptr & (THREAD_SIZE - 1)));
 	else
 		return ptr;
