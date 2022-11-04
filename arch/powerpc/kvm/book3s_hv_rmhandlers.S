@@ -125,8 +125,18 @@ END_FTR_SECTION_IFCLR(CPU_FTR_ARCH_207S)
 	 * we do the rfid to get back to the book3s_hv_interrupts.S
 	 * code here.
 	 */
-	ld	r8, 112+PPC_LR_STKOFF(r1)
+
+#ifdef CONFIG_VMAP_STACK
+	SWAP_STACK_LINEAR(r6)
+#endif /* CONFIG_VMAP_STACK */
+
 	addi	r1, r1, 112
+	ld	r8, PPC_LR_STKOFF(r1)
+
+#ifdef CONFIG_VMAP_STACK
+	SWAP_STACK_VMALLOC(r6)
+#endif /* CONFIG_VMAP_STACK */
+
 	ld	r7, HSTATE_HOST_MSR(r13)
 
 	/* Return the trap number on this thread as the return value */
