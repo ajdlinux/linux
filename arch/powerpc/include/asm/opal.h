@@ -14,6 +14,7 @@
 
 #include <linux/mm.h>
 #include <linux/notifier.h>
+#include <asm/book3s/64/stack.h>
 
 /* We calculate number of sg entries based on PAGE_SIZE */
 #define SG_ENTRIES_PER_NODE ((PAGE_SIZE - 16) / sizeof(struct opal_sg_entry))
@@ -391,8 +392,6 @@ void opal_wake_poller(void);
 void opal_powercap_init(void);
 void opal_psr_init(void);
 void opal_sensor_groups_init(void);
-
-#define stack_pa(ptr) (is_vmalloc_addr((ptr)) ? (void *)vmalloc_to_phys((void *)(ptr)) : (void *)__pa((ptr)))
 
 #endif /* __ASSEMBLY__ */
 

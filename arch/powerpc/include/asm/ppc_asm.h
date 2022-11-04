@@ -793,23 +793,6 @@ END_FTR_SECTION_NESTED(CPU_FTR_CELL_TB_BUG, CPU_FTR_CELL_TB_BUG, 96)
 
 #endif /* !CONFIG_PPC_BOOK3E_64 */
 
-#if defined(CONFIG_VMAP_STACK) && defined(CONFIG_PPC_BOOK3S_64)
-// Switch the current stack pointer in r1 between a linear map address and a
-// vmalloc address. Used when we need to go in and out of real mode with
-// CONFIG_VMAP_STACK enabled.
-//
-// tmp: scratch register that can be clobbered
-
-#define SWAP_STACK_LINEAR(tmp)			\
-	ld	tmp, PACAKSTACK_LINEAR_BASE(r13);	\
-	andi.	r1, r1, THREAD_SIZE - 1;		\
-	or	r1, r1, tmp;
-#define SWAP_STACK_VMALLOC(tmp)			\
-	ld	tmp, PACAKSTACK_VMALLOC_BASE(r13);	\
-	andi.	r1, r1, THREAD_SIZE - 1;		\
-	or	r1, r1, tmp;
-#endif /* CONFIG_VMAP_STACK && CONFIG_PPC_BOOK3S_64 */
-
 #endif /*  __ASSEMBLY__ */
 
 #define SOFT_MASK_TABLE(_start, _end)		\
