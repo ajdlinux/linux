@@ -986,6 +986,10 @@ start_here_multiplatform:
 start_here_common:
 	/* relocation is on at this point */
 	std	r1,PACAKSAVE(r13) // XXX: do we need to care about PACAKSTACK_LINEAR_BASE yet?
+#if defined(CONFIG_VMAP_STACK) && defined(CONFIG_PPC_BOOK3S_64)
+	andi.	r0, r1, THREAD_SIZE - 1;
+	std	r0,PACAKSTACK_LINEAR_BASE(r13)
+#endif // CONFIG_VMAP_STACK && CONFIG_PPC_BOOK3S_64
 
 	/* Load the TOC (virtual address) */
 	LOAD_PACA_TOC()
