@@ -23,6 +23,7 @@
 #include <asm/runlatch.h>
 #include <asm/dbell.h>
 #include <asm/reg.h>
+#include <asm/book3s/64/stack.h>
 
 #include "powernv.h"
 #include "subcore.h"
@@ -510,11 +511,7 @@ static unsigned long power7_offline(void)
 {
 	unsigned long srr1;
 
-#ifdef CONFIG_VMAP_STACK
-	unsigned long ksp_ea = current_stack_pointer;
-	current_stack_pointer = (unsigned long)stack_pa((void *)ksp_ea);
-#endif
-
+	swap_stack_linear();
 	mtmsr(MSR_IDLE);
 
 #ifdef CONFIG_KVM_BOOK3S_HV_POSSIBLE
@@ -549,10 +546,8 @@ static unsigned long power7_offline(void)
 		srr1 = idle_kvm_start_guest(srr1);
 #endif
 
-#ifdef CONFIG_VMAP_STACK
-	current_stack_pointer = ksp_ea;
-#endif
 	mtmsr(MSR_KERNEL);
+	swap_stack_vmalloc();
 
 	return srr1;
 }
@@ -561,25 +556,17 @@ static unsigned long power7_offline(void)
 void power7_idle_type(unsigned long type)
 {
 	unsigned long srr1;
-#ifdef CONFIG_VMAP_STACK
-	unsigned long ksp_ea;
-#endif
 
 	if (!prep_irq_for_idle_irqsoff())
 		return;
 
-#ifdef CONFIG_VMAP_STACK
-	ksp_ea = current_stack_pointer;
-	current_stack_pointer = (unsigned long)stack_pa((void *)ksp_ea);
-#endif
+	swap_stack_linear();
 	mtmsr(MSR_IDLE);
 	__ppc64_runlatch_off();
 	srr1 = power7_idle_insn(type);
 	__ppc64_runlatch_on();
-#ifdef CONFIG_VMAP_STACK
-	current_stack_pointer = ksp_ea;
-#endif
 	mtmsr(MSR_KERNEL);
+	swap_stack_vmalloc();
 
 	fini_irq_for_idle_irqsoff();
 	irq_set_pending_from_srr1(srr1);
@@ -634,9 +621,6 @@ static unsigned long power9_idle_stop(unsigned long psscr)
 	unsigned long mmcra = 0;
 	struct p9_sprs sprs = {}; /* avoid false used-uninitialised */
 	bool sprs_saved = false;
-#ifdef CONFIG_VMAP_STACK
-	unsigned long ksp_ea;
-#endif
 
 	if (!(psscr & (PSSCR_EC|PSSCR_ESL))) {
 		/* EC=ESL=0 case */
@@ -710,11 +694,7 @@ static unsigned long power9_idle_stop(unsigned long psscr)
 	sprs.iamr	= mfspr(SPRN_IAMR);
 	sprs.uamor	= mfspr(SPRN_UAMOR);
 
-#ifdef CONFIG_VMAP_STACK
-	ksp_ea = current_stack_pointer;
-	current_stack_pointer = (unsigned long)stack_pa((void *)ksp_ea);
-	mtmsr(MSR_IDLE);
-#endif
+	swap_stack_linear();
 	srr1 = isa300_idle_stop_mayloss(psscr);		/* go idle */
 
 #ifdef CONFIG_KVM_BOOK3S_HV_POSSIBLE
@@ -824,10 +804,8 @@ core_woken:
 		__slb_restore_bolted_realmode();
 
 out:
-#ifdef CONFIG_VMAP_STACK
-	current_stack_pointer = ksp_ea; // TODO what about noloss case
-#endif
 	mtmsr(MSR_KERNEL);
+	swap_stack_vmalloc();
 
 	return srr1;
 }
@@ -928,7 +906,6 @@ static unsigned long power10_idle_stop(unsigned long psscr)
 	unsigned long pls;
 //	struct p10_sprs sprs = {}; /* avoid false used-uninitialised */
 	bool sprs_saved = false;
-	unsigned long ksp_ea = current_stack_pointer;
 
 	if (!(psscr & (PSSCR_EC|PSSCR_ESL))) {
 		/* EC=ESL=0 case */
@@ -958,9 +935,8 @@ static unsigned long power10_idle_stop(unsigned long psscr)
 
 		atomic_start_thread_idle();
 	}
-	ksp_ea = current_stack_pointer; // does this need to be done here
-	current_stack_pointer = (unsigned long)stack_pa((void *)ksp_ea);
-	mtmsr(MSR_IDLE);
+
+	swap_stack_linear();
 	srr1 = isa300_idle_stop_mayloss(psscr);		/* go idle */
 
 	psscr = mfspr(SPRN_PSSCR);
@@ -1015,8 +991,8 @@ core_woken:
 		__slb_restore_bolted_realmode();
 
 out:
-	current_stack_pointer = ksp_ea;
 	mtmsr(MSR_KERNEL);
+	swap_stack_vmalloc();
 
 	return srr1;
 }
