@@ -204,8 +204,8 @@ static __always_inline void call_do_softirq(const void *sp)
 {
 	/* Temporarily switch r1 to sp, call __do_softirq() then restore r1. */
 	asm volatile (
-		"li		%%r0, 0			;"
-		"ori		%%r0, %%r0, %[offset]	;"
+		"lis		%%r0, %[offset]@h	;"
+		"ori		%%r0, %%r0, %[offset]@l	;"
 		 PPC_STLUX "	%%r1, %[sp], %%r0	;"
 		"mr		%%r1, %[sp]		;"
 #ifdef CONFIG_PPC_KERNEL_PCREL
@@ -262,8 +262,8 @@ static __always_inline void call_do_irq(struct pt_regs *regs, void *sp)
 
 	/* Temporarily switch r1 to sp, call __do_irq() then restore r1. */
 	asm volatile (
-		"li		%%r0, 0			;"
-		"ori		%%r0, %%r0, %[offset]	;"
+		"lis		%%r0, %[offset]@h	;"
+		"ori		%%r0, %%r0, %[offset]@l	;"
 		 PPC_STLUX "	%%r1, %[sp], %%r0	;"
 		"mr		%%r4, %%r1		;"
 		"mr		%%r1, %[sp]		;"
