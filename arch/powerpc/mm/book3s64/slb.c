@@ -584,11 +584,11 @@ void slb_initialize(void)
 	 * For secondary cpus, we need to bolt the kernel stack entry now.
 	 */
 
-#ifdef CONFIG_VMAP_STACK
-	kstack_flags = SLB_VSID_KERNEL | vmalloc_llp;
-#else
-	kstack_flags = SLB_VSID_KERNEL | linear_llp;
-#endif
+	if (IS_ENABLED(CONFIG_VMAP_STACK))
+		kstack_flags = SLB_VSID_KERNEL | vmalloc_llp;
+	else
+		kstack_flags = SLB_VSID_KERNEL | linear_llp;
+
 	slb_shadow_clear(KSTACK_INDEX);
 	if (raw_smp_processor_id() != boot_cpuid &&
 	    (get_paca()->kstack & slb_esid_mask(mmu_kernel_ssize)) > PAGE_OFFSET)
