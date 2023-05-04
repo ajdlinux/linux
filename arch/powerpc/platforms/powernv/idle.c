@@ -23,6 +23,7 @@
 #include <asm/runlatch.h>
 #include <asm/dbell.h>
 #include <asm/reg.h>
+#include <asm/book3s/64/mmu.h>
 
 #include "powernv.h"
 #include "subcore.h"
@@ -560,28 +561,25 @@ static unsigned long power7_offline(void)
 }
 #endif
 
+// Must call this in real mode
+unsigned long __power7_idle_type(unsigned long type)
+{
+	unsigned long srr1;
+	mtmsr(MSR_IDLE); // We're already in real mode, this turns off MSR_RI too
+	__ppc64_runlatch_off();
+	srr1 = power7_idle_insn(type);
+	__ppc64_runlatch_on();
+	return srr1;
+}
+
 void power7_idle_type(unsigned long type)
 {
 	unsigned long srr1;
-#ifdef CONFIG_VMAP_STACK
-	unsigned long ksp_ea;
-#endif
 
 	if (!prep_irq_for_idle_irqsoff())
 		return;
 
-#ifdef CONFIG_VMAP_STACK
-	ksp_ea = current_stack_pointer;
-	current_stack_pointer = (unsigned long)stack_pa((void *)ksp_ea);
-#endif
-	mtmsr(MSR_IDLE);
-	__ppc64_runlatch_off();
-	srr1 = power7_idle_insn(type);
-	__ppc64_runlatch_on();
-#ifdef CONFIG_VMAP_STACK
-	current_stack_pointer = ksp_ea;
-#endif
-	mtmsr(MSR_KERNEL);
+	srr1 = call_realmode((int (*)(void *))__power7_idle_type, (void *)type);
 
 	fini_irq_for_idle_irqsoff();
 	irq_set_pending_from_srr1(srr1);
