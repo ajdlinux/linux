@@ -571,6 +571,7 @@ unsigned long __power7_idle_type(unsigned long type)
 	__ppc64_runlatch_on();
 	return srr1;
 }
+NOKPROBE_SYMBOL(__power7_idle_type);
 
 void power7_idle_type(unsigned long type)
 {
