@@ -505,6 +505,7 @@ subcore_woken:
 
 	return srr1;
 }
+NOKPROBE_SYMBOL(power7_idle_insn);
 
 extern unsigned long idle_kvm_start_guest(unsigned long srr1);
 
