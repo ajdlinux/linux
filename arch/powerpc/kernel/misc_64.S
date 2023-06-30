@@ -32,10 +32,10 @@
 _GLOBAL(__call_realmode)
 	mflr	r0
 	std	r0,PPC_LR_STKOFF(r1)
-	std	r2,STK_GOT(r1)
 	ld	r5,PACAEMERGSP(r13)
 	stdu	r1,STACK_FRAME_MIN_SIZE(r5)
 	mr	r1,r5
+	std	r2,STK_GOT(r1)
 	mtctr	r3
 	mr	r12,r3
 	mr	r3,r4
@@ -46,10 +46,10 @@ _GLOBAL(__call_realmode)
 	mfmsr	r4
 	xori	r4,r4,(MSR_IR|MSR_DR)
 	mtmsrd	r4
+	ld	r2,STK_GOT(r1)
 	ld	r1,0(r1)
 	ld	r0,PPC_LR_STKOFF(r1)
 	mtlr	r0
-	ld	r2,STK_GOT(r1)
 	blr
 
 #endif
