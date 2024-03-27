@@ -454,8 +454,14 @@ static enum hrtimer_restart watchdog_timer_fn(struct hrtimer *hrtimer)
 void arch_touch_nmi_watchdog(void)
 {
 	unsigned long ticks = tb_ticks_per_usec * wd_timer_period_ms * 1000;
-	int cpu = smp_processor_id();
+	int cpu;
 	u64 tb;
+	bool preempt = preemptible();
+
+	if (preempt)
+		preempt_disable();
+
+	cpu = smp_processor_id();
 
 	if (!cpumask_test_cpu(cpu, &watchdog_cpumask))
 		return;
@@ -465,6 +471,9 @@ void arch_touch_nmi_watchdog(void)
 		per_cpu(wd_timer_tb, cpu) = tb;
 		wd_smp_clear_cpu_pending(cpu);
 	}
+
+	if (preempt)
+		preempt_enable();
 }
 EXPORT_SYMBOL(arch_touch_nmi_watchdog);
 
