@@ -563,7 +563,7 @@ static unsigned long power7_offline(void)
 #endif
 
 // Must call this in real mode
-unsigned long __power7_idle_type(unsigned long type)
+static unsigned long __power7_idle_type(unsigned long type)
 {
 	unsigned long srr1;
 	mtmsr(MSR_IDLE); // We're already in real mode, this turns off MSR_RI too
