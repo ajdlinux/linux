@@ -581,7 +581,9 @@ void power7_idle_type(unsigned long type)
 	if (!prep_irq_for_idle_irqsoff())
 		return;
 
+#pragma GCC diagnostic ignored "-Wcast-function-type"
 	srr1 = call_realmode((int (*)(void *))__power7_idle_type, (void *)type);
+#pragma GCC diagnostic pop
 
 	fini_irq_for_idle_irqsoff();
 	irq_set_pending_from_srr1(srr1);
