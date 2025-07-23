@@ -439,16 +439,6 @@ static __always_inline void guest_context_enter_irqoff(void)
 	}
 }
 
-/*
- * Deprecated. Architectures should move to guest_timing_enter_irqoff() and
- * guest_state_enter_irqoff().
- */
-static __always_inline void guest_enter_irqoff(void)
-{
-	guest_timing_enter_irqoff();
-	guest_context_enter_irqoff();
-}
-
 /**
  * guest_state_enter_irqoff - Fixup state when entering a guest
  *
@@ -508,25 +498,6 @@ static __always_inline void guest_timing_exit_irqoff(void)
 	/* Flush the guest cputime we spent on the guest */
 	vtime_account_guest_exit();
 	instrumentation_end();
-}
-
-/*
- * Deprecated. Architectures should move to guest_state_exit_irqoff() and
- * guest_timing_exit_irqoff().
- */
-static __always_inline void guest_exit_irqoff(void)
-{
-	guest_context_exit_irqoff();
-	guest_timing_exit_irqoff();
-}
-
-static inline void guest_exit(void)
-{
-	unsigned long flags;
-
-	local_irq_save(flags);
-	guest_exit_irqoff();
-	local_irq_restore(flags);
 }
 
 /**
