@@ -553,6 +553,8 @@ static inline void ptep_clear(struct mm_struct *mm, unsigned long addr,
 	 * No need for ptep_get_and_clear(): page table check doesn't care about
 	 * any bits that could have been set by HW concurrently.
 	 */
+	pr_crit("XXX: ptep_clear - calling page_table_check_pte_clear mm=%px, addr=%08lx, ptep=%px, pte=%08lx\n", mm, addr, ptep, pte);
+	dump_stack();
 	page_table_check_pte_clear(mm, addr, pte);
 }
 

@@ -589,7 +589,7 @@ static void __init p4d_populate_tests(struct pgtable_debug_args *args) { }
 static void __init pgd_populate_tests(struct pgtable_debug_args *args) { }
 #endif /* PAGETABLE_P4D_FOLDED */
 
-static void __init pte_clear_tests(struct pgtable_debug_args *args)
+static void __init pte_clear_tests(struct pgtable_debug_args *args) // XXX: I wonder if having this marked as __init, combined with the page_table_check_disabled static key being inlined here, leads to the failure to patch the branch. Update: no doesn't seem to make a difference WAIT WAIT WAIT it all gets inlined I have to remove all the __inits.. YEP THAT'S IT. if oyu take away __init on the root function it works.
 {
 	struct page *page;
 	pte_t pte = pfn_pte(args->pte_pfn, args->page_prot);
@@ -613,7 +613,7 @@ static void __init pte_clear_tests(struct pgtable_debug_args *args)
 	WARN_ON(pte_none(pte));
 	flush_dcache_page(page);
 	barrier();
-	ptep_clear(args->mm, args->vaddr, args->ptep);
+	ptep_clear(args->mm, args->vaddr, args->ptep); // XXX: Is this not triggering the ptc clear? should it be? changing it to ptep_get_and_clear makes it work
 	pte = ptep_get(args->ptep);
 	WARN_ON(!pte_none(pte));
 }
@@ -983,6 +983,7 @@ static void __init destroy_args(struct pgtable_debug_args *args)
 
 	if (args->pte_pfn != ULONG_MAX) {
 		page = pfn_to_page(args->pte_pfn);
+		pr_crit("XXX: About to call free page. args->pte_pfn = %08lx ; page = %px\n", args->pte_pfn, page);
 		__free_page(page);
 
 		args->pte_pfn = ULONG_MAX;

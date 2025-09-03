@@ -67,10 +67,13 @@ static void page_table_check_clear(unsigned long pfn, unsigned long pgcnt)
 	struct page *page;
 	bool anon;
 
-	if (!pfn_valid(pfn))
+	if (!pfn_valid(pfn)) {
+		pr_crit("page_table_check_clear: returning because pfn %08lx isn't valid\n", pfn);
 		return;
+	}
 
 	page = pfn_to_page(pfn);
+	pr_crit("page_table_check_clear: clearing page %px pfn %08lx pgcnt %lu\n", page, pfn, pgcnt);
 	BUG_ON(PageSlab(page));
 	anon = PageAnon(page);
 
@@ -84,6 +87,8 @@ static void page_table_check_clear(unsigned long pfn, unsigned long pgcnt)
 		} else {
 			BUG_ON(atomic_read(&ptc->anon_map_count));
 			BUG_ON(atomic_dec_return(&ptc->file_map_count) < 0);
+			pr_crit("XXX: Decrementing file map count. pfn %lx ; new file_map_count %d\n", pfn, atomic_read(&ptc->file_map_count));
+			dump_stack();
 		}
 	}
 	rcu_read_unlock();
@@ -119,6 +124,8 @@ static void page_table_check_set(unsigned long pfn, unsigned long pgcnt,
 		} else {
 			BUG_ON(atomic_read(&ptc->anon_map_count));
 			BUG_ON(atomic_inc_return(&ptc->file_map_count) < 0);
+			pr_crit("XXX: Incrementing file map count. pfn %lx ; new file_map_count %d\n", pfn, atomic_read(&ptc->file_map_count));
+			dump_stack();
 		}
 	}
 	rcu_read_unlock();
@@ -138,7 +145,9 @@ void __page_table_check_zero(struct page *page, unsigned int order)
 	rcu_read_lock();
 	for_each_page_ext(page, 1 << order, page_ext, iter) {
 		struct page_table_check *ptc = get_page_table_check(page_ext);
-
+		if (atomic_read(&ptc->file_map_count)) {
+			pr_crit("File map count: %d ; page: %p\n", atomic_read(&ptc->file_map_count), page);
+		}
 		BUG_ON(atomic_read(&ptc->anon_map_count));
 		BUG_ON(atomic_read(&ptc->file_map_count));
 	}
@@ -148,11 +157,15 @@ void __page_table_check_zero(struct page *page, unsigned int order)
 void __page_table_check_pte_clear(struct mm_struct *mm, unsigned long addr,
 				  pte_t pte)
 {
+	pr_crit("__page_table_check_pte_clear: called. mm: %px; addr: %lx; pte: %lx ... pfn: %lx\n", mm, addr, pte, pte_pfn(pte));
 	if (&init_mm == mm)
 		return;
 
 	if (pte_user_accessible_page(pte, addr)) {
 		page_table_check_clear(pte_pfn(pte), PAGE_SIZE >> PAGE_SHIFT);
+	} else {
+		pr_crit("__page_table_check_pte_clear: pte_user_accessible_page returned false. mm: %px; addr: %lx; pte: %lx ... pfn: %lx\n", mm, addr, pte, pte_pfn(pte));
+		WARN_ON(1);
 	}
 }
 EXPORT_SYMBOL(__page_table_check_pte_clear);

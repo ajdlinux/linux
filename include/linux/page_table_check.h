@@ -51,7 +51,7 @@ static inline void page_table_check_pte_clear(struct mm_struct *mm,
 {
 	if (static_branch_likely(&page_table_check_disabled))
 		return;
-
+	//pr_crit("page_table_check_pte_clear: called. mm: %px; addr: %lx; pte: %lx\n", mm, addr, pte); // <--- UNCOMMENTING THIS LINE MAKES THE PROBLEM GO AWAY CURSED CURSED CURSED XXX
 	__page_table_check_pte_clear(mm, addr, pte);
 }
 

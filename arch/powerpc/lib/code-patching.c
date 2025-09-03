@@ -22,11 +22,15 @@
 
 static int __patch_mem(void *exec_addr, unsigned long val, void *patch_addr, bool is_dword)
 {
+	pr_crit("%s: doing! exec_addr: %pS, val %lx, patch_addr: %pS, is_dword: %d\n", __func__, exec_addr, val, patch_addr, is_dword);
 	if (!IS_ENABLED(CONFIG_PPC64) || likely(!is_dword)) {
 		/* For big endian correctness: plain address would use the wrong half */
 		u32 val32 = val;
 
-		__put_kernel_nofault(patch_addr, &val32, u32, failed);
+		//__put_kernel_nofault(patch_addr, &val32, u32, failed);
+
+		// This is the above, but with the EX_TABLE entries removed so that we get a catastrophic failure
+		do { __typeof__(*(( u32 *)(patch_addr))) *__pus_addr = (( u32 *)(patch_addr)); switch (sizeof(u32)) { case 1: asm goto( "1:   " "stb" "%U1%X1 %0,%1   # put_user\n"  : : "r" (*((u32 *)(&val32))), "m<>" (*__pus_addr) : : failed); break; case 2: asm goto( "1:    " "sth" "%U1%X1 %0,%1   # put_user\n"  : : "r" (*((u32 *)(&val32))), "m<>" (*__pus_addr) : : failed); break; case 4: asm goto( "1:      " "stw" "%U1%X1 %0,%1 # put_user\n"  : : "r" (*((u32 *)(&val32))), "m<>" (*__pus_addr) : : failed); break; case 8: asm goto( "1:      stw%X1 %0, %1\n" "2:    stw%X1 %L0, %L1\n"  : : "r" (*((u32 *)(&val32))), "m" (*__pus_addr) : : failed); break; default: do { __attribute__((__noreturn__)) extern void __compiletime_assert_627(void) __attribute__((__error__("BUILD_BUG failed"))); if (!(!(1))) __compiletime_assert_627(); } while (0); } } while (0);
 	} else {
 		__put_kernel_nofault(patch_addr, &val, u64, failed);
 	}
@@ -38,6 +42,7 @@ static int __patch_mem(void *exec_addr, unsigned long val, void *patch_addr, boo
 
 failed:
 	mb();  /* sync */
+	pr_crit("%s: failed! exec_addr: %pS, val %lx, patch_addr: %pS, is_dword: %d\n", __func__, exec_addr, val, patch_addr, is_dword);
 	return -EPERM;
 }
 
