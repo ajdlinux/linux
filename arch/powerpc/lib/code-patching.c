@@ -20,7 +20,7 @@
 #include <asm/text-patching.h>
 #include <asm/inst.h>
 
-static int __patch_mem(void *exec_addr, unsigned long val, void *patch_addr, bool is_dword)
+static __must_check int __patch_mem(void *exec_addr, unsigned long val, void *patch_addr, bool is_dword)
 {
 	if (!IS_ENABLED(CONFIG_PPC64) || likely(!is_dword)) {
 		/* For big endian correctness: plain address would use the wrong half */
@@ -41,7 +41,7 @@ failed:
 	return -EPERM;
 }
 
-int raw_patch_instruction(u32 *addr, ppc_inst_t instr)
+int __must_check raw_patch_instruction(u32 *addr, ppc_inst_t instr)
 {
 	if (ppc_inst_prefixed(instr))
 		return __patch_mem(addr, ppc_inst_as_ulong(instr), addr, true);
@@ -278,7 +278,7 @@ static void unmap_patch_area(unsigned long addr)
 	flush_tlb_kernel_range(addr, addr + PAGE_SIZE);
 }
 
-static int __do_patch_mem_mm(void *addr, unsigned long val, bool is_dword)
+static __must_check int __do_patch_mem_mm(void *addr, unsigned long val, bool is_dword)
 {
 	int err;
 	u32 *patch_addr;
@@ -324,7 +324,7 @@ static int __do_patch_mem_mm(void *addr, unsigned long val, bool is_dword)
 	return err;
 }
 
-static int __do_patch_mem(void *addr, unsigned long val, bool is_dword)
+static __must_check int __do_patch_mem(void *addr, unsigned long val, bool is_dword)
 {
 	int err;
 	u32 *patch_addr;
@@ -349,7 +349,7 @@ static int __do_patch_mem(void *addr, unsigned long val, bool is_dword)
 	return err;
 }
 
-static int patch_mem(void *addr, unsigned long val, bool is_dword)
+static __must_check int patch_mem(void *addr, unsigned long val, bool is_dword)
 {
 	int err;
 	unsigned long flags;
@@ -375,7 +375,7 @@ static int patch_mem(void *addr, unsigned long val, bool is_dword)
 
 #ifdef CONFIG_PPC64
 
-int patch_instruction(u32 *addr, ppc_inst_t instr)
+int __must_check patch_instruction(u32 *addr, ppc_inst_t instr)
 {
 	if (ppc_inst_prefixed(instr))
 		return patch_mem(addr, ppc_inst_as_ulong(instr), true);
@@ -384,7 +384,7 @@ int patch_instruction(u32 *addr, ppc_inst_t instr)
 }
 NOKPROBE_SYMBOL(patch_instruction);
 
-int patch_uint(void *addr, unsigned int val)
+int __must_check patch_uint(void *addr, unsigned int val)
 {
 	if (!IS_ALIGNED((unsigned long)addr, sizeof(unsigned int)))
 		return -EINVAL;
@@ -393,7 +393,7 @@ int patch_uint(void *addr, unsigned int val)
 }
 NOKPROBE_SYMBOL(patch_uint);
 
-int patch_ulong(void *addr, unsigned long val)
+int __must_check patch_ulong(void *addr, unsigned long val)
 {
 	if (!IS_ALIGNED((unsigned long)addr, sizeof(unsigned long)))
 		return -EINVAL;
@@ -404,7 +404,7 @@ NOKPROBE_SYMBOL(patch_ulong);
 
 #else
 
-int patch_instruction(u32 *addr, ppc_inst_t instr)
+int __must_check patch_instruction(u32 *addr, ppc_inst_t instr)
 {
 	return patch_mem(addr, ppc_inst_val(instr), false);
 }
@@ -412,7 +412,7 @@ NOKPROBE_SYMBOL(patch_instruction)
 
 #endif
 
-static int patch_memset64(u64 *addr, u64 val, size_t count)
+static __must_check int patch_memset64(u64 *addr, u64 val, size_t count)
 {
 	for (u64 *end = addr + count; addr < end; addr++)
 		__put_kernel_nofault(addr, &val, u64, failed);
@@ -423,7 +423,7 @@ failed:
 	return -EPERM;
 }
 
-static int patch_memset32(u32 *addr, u32 val, size_t count)
+static __must_check int patch_memset32(u32 *addr, u32 val, size_t count)
 {
 	for (u32 *end = addr + count; addr < end; addr++)
 		__put_kernel_nofault(addr, &val, u32, failed);
@@ -434,7 +434,7 @@ failed:
 	return -EPERM;
 }
 
-static int __patch_instructions(u32 *patch_addr, u32 *code, size_t len, bool repeat_instr)
+static __must_check int __patch_instructions(u32 *patch_addr, u32 *code, size_t len, bool repeat_instr)
 {
 	unsigned long start = (unsigned long)patch_addr;
 	int err;
@@ -465,7 +465,7 @@ static int __patch_instructions(u32 *patch_addr, u32 *code, size_t len, bool rep
  * A page is mapped and instructions that fit the page are patched.
  * Assumes 'len' to be (PAGE_SIZE - offset_in_page(addr)) or below.
  */
-static int __do_patch_instructions_mm(u32 *addr, u32 *code, size_t len, bool repeat_instr)
+static __must_check int __do_patch_instructions_mm(u32 *addr, u32 *code, size_t len, bool repeat_instr)
 {
 	struct mm_struct *patching_mm, *orig_mm;
 	unsigned long pfn = get_patch_pfn(addr);
@@ -516,7 +516,7 @@ static int __do_patch_instructions_mm(u32 *addr, u32 *code, size_t len, bool rep
  * A page is mapped and instructions that fit the page are patched.
  * Assumes 'len' to be (PAGE_SIZE - offset_in_page(addr)) or below.
  */
-static int __do_patch_instructions(u32 *addr, u32 *code, size_t len, bool repeat_instr)
+static __must_check int __do_patch_instructions(u32 *addr, u32 *code, size_t len, bool repeat_instr)
 {
 	unsigned long pfn = get_patch_pfn(addr);
 	unsigned long text_poke_addr;
@@ -547,7 +547,7 @@ static int __do_patch_instructions(u32 *addr, u32 *code, size_t len, bool repeat
  * If repeat_instr is true, the same instruction is filled for
  * 'len' bytes.
  */
-int patch_instructions(u32 *addr, u32 *code, size_t len, bool repeat_instr)
+int __must_check patch_instructions(u32 *addr, u32 *code, size_t len, bool repeat_instr)
 {
 	while (len > 0) {
 		unsigned long flags;
@@ -575,7 +575,7 @@ int patch_instructions(u32 *addr, u32 *code, size_t len, bool repeat_instr)
 }
 NOKPROBE_SYMBOL(patch_instructions);
 
-int patch_branch(u32 *addr, unsigned long target, int flags)
+int __must_check patch_branch(u32 *addr, unsigned long target, int flags)
 {
 	ppc_inst_t instr;
 

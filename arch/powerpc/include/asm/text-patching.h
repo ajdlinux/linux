@@ -71,10 +71,10 @@ static inline int create_branch(ppc_inst_t *instr, const u32 *addr,
 
 int create_cond_branch(ppc_inst_t *instr, const u32 *addr,
 		       unsigned long target, int flags);
-int patch_branch(u32 *addr, unsigned long target, int flags);
-int patch_instruction(u32 *addr, ppc_inst_t instr);
-int raw_patch_instruction(u32 *addr, ppc_inst_t instr);
-int patch_instructions(u32 *addr, u32 *code, size_t len, bool repeat_instr);
+int __must_check patch_branch(u32 *addr, unsigned long target, int flags);
+int __must_check patch_instruction(u32 *addr, ppc_inst_t instr);
+int __must_check raw_patch_instruction(u32 *addr, ppc_inst_t instr);
+int __must_check patch_instructions(u32 *addr, u32 *code, size_t len, bool repeat_instr);
 
 /*
  * The data patching functions patch_uint() and patch_ulong(), etc., must be
@@ -86,14 +86,14 @@ int patch_instructions(u32 *addr, u32 *code, size_t len, bool repeat_instr);
 
 #ifdef CONFIG_PPC64
 
-int patch_uint(void *addr, unsigned int val);
-int patch_ulong(void *addr, unsigned long val);
+int __must_check patch_uint(void *addr, unsigned int val);
+int __must_check patch_ulong(void *addr, unsigned long val);
 
 #define patch_u64 patch_ulong
 
 #else
 
-static inline int patch_uint(void *addr, unsigned int val)
+static inline int __must_check patch_uint(void *addr, unsigned int val)
 {
 	if (!IS_ALIGNED((unsigned long)addr, sizeof(unsigned int)))
 		return -EINVAL;
@@ -101,7 +101,7 @@ static inline int patch_uint(void *addr, unsigned int val)
 	return patch_instruction(addr, ppc_inst(val));
 }
 
-static inline int patch_ulong(void *addr, unsigned long val)
+static inline int __must_check patch_ulong(void *addr, unsigned long val)
 {
 	if (!IS_ALIGNED((unsigned long)addr, sizeof(unsigned long)))
 		return -EINVAL;
@@ -118,23 +118,23 @@ static inline unsigned long patch_site_addr(s32 *site)
 	return (unsigned long)site + *site;
 }
 
-static inline int patch_instruction_site(s32 *site, ppc_inst_t instr)
+static inline int __must_check patch_instruction_site(s32 *site, ppc_inst_t instr)
 {
 	return patch_instruction((u32 *)patch_site_addr(site), instr);
 }
 
-static inline int patch_branch_site(s32 *site, unsigned long target, int flags)
+static inline int __must_check patch_branch_site(s32 *site, unsigned long target, int flags)
 {
 	return patch_branch((u32 *)patch_site_addr(site), target, flags);
 }
 
-static inline int modify_instruction(unsigned int *addr, unsigned int clr,
+static inline int __must_check modify_instruction(unsigned int *addr, unsigned int clr,
 				     unsigned int set)
 {
 	return patch_instruction(addr, ppc_inst((*addr & ~clr) | set));
 }
 
-static inline int modify_instruction_site(s32 *site, unsigned int clr, unsigned int set)
+static inline int __must_check modify_instruction_site(s32 *site, unsigned int clr, unsigned int set)
 {
 	return modify_instruction((unsigned int *)patch_site_addr(site), clr, set);
 }
