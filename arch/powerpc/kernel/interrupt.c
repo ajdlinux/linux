@@ -180,7 +180,7 @@ static notrace void check_return_regs_valid(struct pt_regs *regs)
 #endif
 }
 
-static notrace unsigned long
+static noinstr unsigned long
 interrupt_exit_user_prepare_main(unsigned long ret, struct pt_regs *regs)
 {
 	unsigned long ti_flags;

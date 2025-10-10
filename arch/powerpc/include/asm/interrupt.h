@@ -670,7 +670,7 @@ notrace unsigned long syscall_exit_prepare(unsigned long r3, struct pt_regs *reg
 noinstr unsigned long interrupt_exit_user_prepare(struct pt_regs *regs);
 noinstr unsigned long interrupt_exit_kernel_prepare(struct pt_regs *regs);
 #ifdef CONFIG_PPC64
-unsigned long syscall_exit_restart(unsigned long r3, struct pt_regs *regs);
+unsigned long syscall_exit_restart(unsigned long r3, struct pt_regs *regs); // XXX: all this stuff too???
 unsigned long interrupt_exit_user_restart(struct pt_regs *regs);
 unsigned long interrupt_exit_kernel_restart(struct pt_regs *regs);
 #endif
