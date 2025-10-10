@@ -90,12 +90,12 @@ do {									\
 
 #ifdef CONFIG_PPC_BOOK3S_64
 extern char __end_soft_masked[];
-bool search_kernel_soft_mask_table(unsigned long addr);
-unsigned long search_kernel_restart_table(unsigned long addr);
+bool search_kernel_soft_mask_table(unsigned long addr); // XXX: Noinstr this???
+unsigned long search_kernel_restart_table(unsigned long addr); // XXX: noinstr this???
 
 DECLARE_STATIC_KEY_FALSE(interrupt_exit_not_reentrant);
 
-static inline bool is_implicit_soft_masked(struct pt_regs *regs)
+static __always_inline bool is_implicit_soft_masked(struct pt_regs *regs)
 {
 	if (user_mode(regs))
 		return false;
@@ -112,12 +112,12 @@ static inline void srr_regs_clobbered(void)
 	local_paca->hsrr_valid = 0;
 }
 #else
-static inline unsigned long search_kernel_restart_table(unsigned long addr)
+static inline unsigned long search_kernel_restart_table(unsigned long addr) // XXX: noinstr??
 {
 	return 0;
 }
 
-static inline bool is_implicit_soft_masked(struct pt_regs *regs)
+static __always_inline bool is_implicit_soft_masked(struct pt_regs *regs)
 {
 	return false;
 }
@@ -127,7 +127,7 @@ static inline void srr_regs_clobbered(void)
 }
 #endif
 
-static inline void nap_adjust_return(struct pt_regs *regs)
+static __always_inline void nap_adjust_return(struct pt_regs *regs)
 {
 #ifdef CONFIG_PPC_970_NAP
 	if (unlikely(test_thread_local_flags(_TLF_NAPPING))) {
@@ -138,7 +138,7 @@ static inline void nap_adjust_return(struct pt_regs *regs)
 #endif
 }
 
-static inline void booke_restore_dbcr0(void)
+static __always_inline void booke_restore_dbcr0(void)
 {
 #ifdef CONFIG_PPC_ADV_DEBUG_REGS
 	unsigned long dbcr0 = current->thread.debug.dbcr0;
@@ -261,7 +261,7 @@ struct interrupt_nmi_state {
 #endif
 };
 
-static inline bool nmi_disables_ftrace(struct pt_regs *regs)
+static __always_inline bool nmi_disables_ftrace(struct pt_regs *regs)
 {
 	/* Allow DEC and PMI to be traced when they are soft-NMI */
 	if (IS_ENABLED(CONFIG_PPC_BOOK3S_64)) {
