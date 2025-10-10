@@ -667,8 +667,8 @@ static inline void interrupt_cond_local_irq_enable(struct pt_regs *regs)
 
 long system_call_exception(struct pt_regs *regs, unsigned long r0);
 notrace unsigned long syscall_exit_prepare(unsigned long r3, struct pt_regs *regs, long scv);
-notrace unsigned long interrupt_exit_user_prepare(struct pt_regs *regs);
-notrace unsigned long interrupt_exit_kernel_prepare(struct pt_regs *regs);
+noinstr unsigned long interrupt_exit_user_prepare(struct pt_regs *regs);
+noinstr unsigned long interrupt_exit_kernel_prepare(struct pt_regs *regs);
 #ifdef CONFIG_PPC64
 unsigned long syscall_exit_restart(unsigned long r3, struct pt_regs *regs);
 unsigned long interrupt_exit_user_restart(struct pt_regs *regs);

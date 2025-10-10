@@ -342,7 +342,7 @@ notrace unsigned long syscall_exit_restart(unsigned long r3, struct pt_regs *reg
 }
 #endif
 
-notrace unsigned long interrupt_exit_user_prepare(struct pt_regs *regs)
+noinstr unsigned long interrupt_exit_user_prepare(struct pt_regs *regs)
 {
 	unsigned long ret;
 
@@ -369,7 +369,7 @@ notrace unsigned long interrupt_exit_user_prepare(struct pt_regs *regs)
 
 void preempt_schedule_irq(void);
 
-notrace unsigned long interrupt_exit_kernel_prepare(struct pt_regs *regs)
+noinstr unsigned long interrupt_exit_kernel_prepare(struct pt_regs *regs)
 {
 	unsigned long ret = 0;
 	unsigned long kuap;
