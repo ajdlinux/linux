@@ -99,6 +99,20 @@
 
 #define HAVE_ARCH_BUG_ON
 #define HAVE_ARCH_WARN_ON
+
+// TODO: double check location
+// TODO: test
+
+#define __BUG_ENTRY_STRING(file, line, flags, size)		\ // TODO: size??
+
+
+#define ARCH_WARN_ASM(file, line, flags, size)			\
+		__BUG_ENTRY_STRING(file, line, flags, size)	\ // TODO: size??
+
+
+#define ARCH_WARN_REACHABLE
+
+
 #endif
 
 #endif /* __ASSEMBLER__ */
